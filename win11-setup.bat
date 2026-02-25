@@ -10,9 +10,10 @@ setlocal enabledelayedexpansion
 :: Configuration (modifier avant exécution si besoin)
 :: -------------------------
 set LOG=C:\Windows\Temp\win11-setup.log
-set KEEP_ADOBE=0       :: 0 = Adobe hosts commentés (par défaut), 1 = activer blocage Adobe
+set BLOCK_ADOBE=0      :: 0 = Adobe hosts commentés (par défaut), 1 = activer blocage Adobe
 set NEED_RDP=0         :: 0 = Microsoft.RemoteDesktop supprimé, 1 = conservé
 set NEED_WEBCAM=0      :: 0 = Microsoft.WindowsCamera supprimé, 1 = conservé
+set NEED_BT=0          :: 0 = BthAvctpSvc désactivé (casques BT audio peuvent échouer), 1 = conservé
 
 echo [%date% %time%] win11-setup.bat start >> "%LOG%"
 
@@ -96,6 +97,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v DontSendAddition
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v LoggingDisabled /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DiagTrack" /v DisableTelemetry /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\SQM" /v DisableSQM /t REG_DWORD /d 1 /f >nul 2>&1
+:: [hors prérequis] DisableOSUpgrade=1 bloque la montée vers une version majeure future (ex. Windows 12)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v DisableOSUpgrade /t REG_DWORD /d 1 /f >nul 2>&1
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall OK >> "%LOG%"
 
@@ -161,6 +163,8 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\InputPersonalization" /v
 
 :: Géolocalisation désactivée (lfsvc désactivé en section 14 + registre)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" /v DisableLocation /t REG_DWORD /d 1 /f >nul 2>&1
+:: Localisation bloquée par app (CapabilityAccessManager — UWP/Store apps)
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" /v Value /t REG_SZ /d "Deny" /f >nul 2>&1
 
 :: Notifications toast désactivées
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v NoToastApplicationNotification /t REG_DWORD /d 1 /f >nul 2>&1
@@ -216,6 +220,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpa
 :: Son au démarrage désactivé (HKLM)
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableStartupSound /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DisableStartupSound /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v UserSetting_DisableStartupSound /t REG_DWORD /d 1 /f >nul 2>&1
 
 :: Hibernation désactivée / Fast Startup désactivé (HKLM)
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v HiberbootEnabled /t REG_DWORD /d 0 /f >nul 2>&1
@@ -257,7 +262,7 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\XboxNetApiSvc" /v Start /t REG_D
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\XboxGipSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\BDESVC" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\wbengine" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\BthAvctpSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+if "%NEED_BT%"=="0" reg add "HKLM\SYSTEM\CurrentControlSet\Services\BthAvctpSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\Fax" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\RetailDemo" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\ScDeviceEnum" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
@@ -287,9 +292,10 @@ echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboo
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 15 — Arrêt immédiat des services listés
 :: ═══════════════════════════════════════════════════════════
-for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine BthAvctpSvc Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain) do (
+for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain) do (
   sc stop %%S >nul 2>&1
 )
+if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
 echo [%date% %time%] Section 15 : sc stop envoye aux services listes >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -314,7 +320,7 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
 ) >> "%HOSTSFILE%" 2>nul
 
 :: Hosts Adobe — commentés par défaut (KEEP_ADOBE=1 pour activer)
-if "%KEEP_ADOBE%"=="1" (
+if "%BLOCK_ADOBE%"=="1" (
   (
     echo 0.0.0.0 lmlicenses.wip4.adobe.com
     echo 0.0.0.0 lm.licenses.adobe.com
