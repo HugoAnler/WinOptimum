@@ -10,9 +10,10 @@ setlocal enabledelayedexpansion
 :: Configuration (modifier avant exécution si besoin)
 :: -------------------------
 set LOG=C:\Windows\Temp\win11-setup.log
-set KEEP_ADOBE=0       :: 0 = Adobe hosts commentés (par défaut), 1 = activer blocage Adobe
+set BLOCK_ADOBE=0      :: 0 = Adobe hosts commentés (par défaut), 1 = activer blocage Adobe
 set NEED_RDP=0         :: 0 = Microsoft.RemoteDesktop supprimé, 1 = conservé
 set NEED_WEBCAM=0      :: 0 = Microsoft.WindowsCamera supprimé, 1 = conservé
+set NEED_BT=0          :: 0 = BthAvctpSvc désactivé (casques BT audio peuvent échouer), 1 = conservé
 
 echo [%date% %time%] win11-setup.bat start >> "%LOG%"
 
@@ -48,24 +49,20 @@ set FREE=
 for /f "tokens=2 delims==" %%F in ('wmic logicaldisk where DeviceID^="C:" get FreeSpace /value 2^>nul') do set FREE=%%F
 if defined FREE (
   set /a FREE_GB=!FREE:~0,-6! / 1000
+  if !FREE_GB! GEQ 10 (
+    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v AutomaticManagedPagefile /t REG_DWORD /d 0 /f >nul 2>&1
+    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v PagingFiles /t REG_MULTI_SZ /d "C:\pagefile.sys 6144 6144" /f >nul 2>&1
+    echo [%date% %time%] Section 4 : Pagefile 6 Go fixe applique (espace OK : !FREE_GB! Go) >> "%LOG%"
+  ) else (
+    echo [%date% %time%] Section 4 : Pagefile auto conserve - espace insuffisant (!FREE_GB! Go) >> "%LOG%"
+  )
 ) else (
-  set FREE_GB=0
-)
-if %FREE_GB% GEQ 10 (
-  reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v AutomaticManagedPagefile /t REG_DWORD /d 0 /f >nul 2>&1
-  reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v PagingFiles /t REG_MULTI_SZ /d "C:\pagefile.sys 6144 6144" /f >nul 2>&1
-  echo [%date% %time%] Section 4 : Pagefile 6 Go fixe applique (espace OK : %FREE_GB% Go) >> "%LOG%"
-) else (
-  echo [%date% %time%] Section 4 : Pagefile auto conserve - espace insuffisant (%FREE_GB% Go) >> "%LOG%"
+  echo [%date% %time%] Section 4 : Pagefile auto conserve - FREE non defini (wmic echoue) >> "%LOG%"
 )
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 5 — Mémoire : compression, prefetch, cache
 :: ═══════════════════════════════════════════════════════════
-:: Compression mémoire via MMAgent
-powershell -NoProfile -NonInteractive -Command "try { Enable-MMAgent -MemoryCompression -ErrorAction Stop } catch { }" >nul 2>&1
-echo [%date% %time%] Section 5 : Enable-MMAgent MemoryCompression attempted >> "%LOG%"
-
 :: Registre mémoire
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v LargeSystemCache /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v MinFreeSystemCommit /t REG_DWORD /d 1 /f >nul 2>&1
@@ -96,8 +93,14 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v DontSendAddition
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v LoggingDisabled /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DiagTrack" /v DisableTelemetry /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\SQM" /v DisableSQM /t REG_DWORD /d 1 /f >nul 2>&1
+:: [hors prérequis] DisableOSUpgrade=1 bloque la montée vers une version majeure future (ex. Windows 12)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v DisableOSUpgrade /t REG_DWORD /d 1 /f >nul 2>&1
-echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall OK >> "%LOG%"
+:: Feedback utilisateur (SIUF) — taux de solicitation à zéro
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v DoNotShowFeedbackNotifications /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Siuf\Rules" /v NumberOfSIUFInPeriod /t REG_DWORD /d 0 /f >nul 2>&1
+:: CEIP désactivé via registre (complément aux tâches planifiées section 17)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\SQMClient\Windows" /v CEIPEnable /t REG_DWORD /d 0 /f >nul 2>&1
+echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 7 — AutoLoggers télémétrie (désactivation à la source)
@@ -161,9 +164,13 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\InputPersonalization" /v
 
 :: Géolocalisation désactivée (lfsvc désactivé en section 14 + registre)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" /v DisableLocation /t REG_DWORD /d 1 /f >nul 2>&1
+:: Localisation bloquée par app (CapabilityAccessManager — UWP/Store apps)
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" /v Value /t REG_SZ /d "Deny" /f >nul 2>&1
 
 :: Notifications toast désactivées
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v NoToastApplicationNotification /t REG_DWORD /d 1 /f >nul 2>&1
+:: Notifications toast — clé non-policy directe (effet immédiat sans redémarrage — prérequis ligne 270)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 
 :: AutoPlay / AutoRun désactivés (sécurité USB)
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoDriveTypeAutoRun /t REG_DWORD /d 255 /f >nul 2>&1
@@ -173,11 +180,38 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v No
 :: Bloatware auto-install Microsoft bloqué
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsConsumerFeatures /t REG_DWORD /d 1 /f >nul 2>&1
 
-:: WerFault / Rapport erreurs désactivé
+:: WerFault / Rapport erreurs désactivé (clés non-policy)
 reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontSendAdditionalData /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v LoggingDisabled /t REG_DWORD /d 1 /f >nul 2>&1
+:: WER désactivé via policy path (prioritaire sur les clés non-policy ci-dessus)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting" /v Disabled /t REG_DWORD /d 1 /f >nul 2>&1
 
-echo [%date% %time%] Section 11 : Vie privee/Securite OK >> "%LOG%"
+:: Input Personalization — policy HKLM (appliqué system-wide, complément des clés HKCU)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v RestrictImplicitInkCollection /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v RestrictImplicitTextCollection /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Notifications toast — HKLM policy (system-wide, complément du HKCU ligne 170)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v NoToastApplicationNotification /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: CloudContent — expériences personnalisées / Spotlight / SoftLanding
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailoredExperiencesWithDiagnosticData /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableSoftLanding /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsSpotlightFeatures /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Maps — empêche màj cartes (complément service MapsBroker désactivé)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Maps" /v AutoDownloadAndUpdateMapData /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Maps" /v AllowUntriggeredNetworkTrafficOnSettingsPage /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Speech — empêche màj modèle vocal (complément tâche SpeechModelDownloadTask désactivée)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Speech" /v AllowSpeechModelUpdate /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Offline Files — policy (complément service CscService désactivé)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetCache" /v Enabled /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: AppPrivacy — empêche apps UWP de s'exécuter en arrière-plan (économie RAM sur 1 Go)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsRunInBackground /t REG_DWORD /d 2 /f >nul 2>&1
+
+echo [%date% %time%] Section 11 : Vie privee/Securite/WER/InputPerso/CloudContent/Maps/Speech/NetCache/AppPrivacy OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 12 — Interface utilisateur (style Windows 10)
@@ -216,8 +250,12 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpa
 :: Son au démarrage désactivé (HKLM)
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v DisableStartupSound /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DisableStartupSound /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v UserSetting_DisableStartupSound /t REG_DWORD /d 1 /f >nul 2>&1
 
 :: Hibernation désactivée / Fast Startup désactivé (HKLM)
+:: Registre en priorité (prérequis) — powercfg en complément pour supprimer hiberfil.sys
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v HibernateEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v HibernateEnabledDefault /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v HiberbootEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 powercfg /h off >nul 2>&1
 
@@ -257,7 +295,7 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\XboxNetApiSvc" /v Start /t REG_D
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\XboxGipSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\BDESVC" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\wbengine" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\BthAvctpSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+if "%NEED_BT%"=="0" reg add "HKLM\SYSTEM\CurrentControlSet\Services\BthAvctpSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\Fax" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\RetailDemo" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\ScDeviceEnum" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
@@ -282,14 +320,21 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\BingMapsGeocoder" /v Start /t RE
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\PushToInstall" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\tiledatamodelsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\FontCache" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: NDU — collecte stats réseau — consomme RAM/CPU inutilement
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Ndu" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Réseau discovery UPnP/SSDP — inutile sur poste de bureau non partagé
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\FDResPub" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\SSDPSRV" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\upnphost" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboot) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 15 — Arrêt immédiat des services listés
 :: ═══════════════════════════════════════════════════════════
-for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine BthAvctpSvc Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain) do (
+for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain Ndu FDResPub SSDPSRV upnphost) do (
   sc stop %%S >nul 2>&1
 )
+if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
 echo [%date% %time%] Section 15 : sc stop envoye aux services listes >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -313,8 +358,8 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
   echo 0.0.0.0 pipe.skype.com
 ) >> "%HOSTSFILE%" 2>nul
 
-:: Hosts Adobe — commentés par défaut (KEEP_ADOBE=1 pour activer)
-if "%KEEP_ADOBE%"=="1" (
+:: Hosts Adobe — commentés par défaut (BLOCK_ADOBE=1 pour activer)
+if "%BLOCK_ADOBE%"=="1" (
   (
     echo 0.0.0.0 lmlicenses.wip4.adobe.com
     echo 0.0.0.0 lm.licenses.adobe.com
@@ -328,8 +373,15 @@ if "%KEEP_ADOBE%"=="1" (
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 17 — Tâches planifiées désactivées
-:: Appels individuels — pas de for loop (chemins avec espaces)
+:: Bloc registre GPO en premier — empêche la réactivation automatique
+:: puis schtasks individuels (complément nécessaire — pas de clé registre directe)
 :: ═══════════════════════════════════════════════════════════
+:: GPO AppCompat — bloque la réactivation des tâches Application Experience / CEIP
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v DisableUAR /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v DisableInventory /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v DisablePCA /t REG_DWORD /d 1 /f >nul 2>&1
+echo [%date% %time%] Section 17a : AppCompat GPO registre OK >> "%LOG%"
+
 schtasks /Change /TN "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" /Disable >nul 2>&1
 schtasks /Change /TN "\Microsoft\Windows\Application Experience\ProgramDataUpdater" /Disable >nul 2>&1
 schtasks /Change /TN "\Microsoft\Windows\Application Experience\StartupAppTask" /Disable >nul 2>&1
