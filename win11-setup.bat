@@ -49,15 +49,15 @@ set FREE=
 for /f "tokens=2 delims==" %%F in ('wmic logicaldisk where DeviceID^="C:" get FreeSpace /value 2^>nul') do set FREE=%%F
 if defined FREE (
   set /a FREE_GB=!FREE:~0,-6! / 1000
+  if !FREE_GB! GEQ 10 (
+    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v AutomaticManagedPagefile /t REG_DWORD /d 0 /f >nul 2>&1
+    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v PagingFiles /t REG_MULTI_SZ /d "C:\pagefile.sys 6144 6144" /f >nul 2>&1
+    echo [%date% %time%] Section 4 : Pagefile 6 Go fixe applique (espace OK : !FREE_GB! Go) >> "%LOG%"
+  ) else (
+    echo [%date% %time%] Section 4 : Pagefile auto conserve - espace insuffisant (!FREE_GB! Go) >> "%LOG%"
+  )
 ) else (
-  set FREE_GB=0
-)
-if %FREE_GB% GEQ 10 (
-  reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v AutomaticManagedPagefile /t REG_DWORD /d 0 /f >nul 2>&1
-  reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v PagingFiles /t REG_MULTI_SZ /d "C:\pagefile.sys 6144 6144" /f >nul 2>&1
-  echo [%date% %time%] Section 4 : Pagefile 6 Go fixe applique (espace OK : %FREE_GB% Go) >> "%LOG%"
-) else (
-  echo [%date% %time%] Section 4 : Pagefile auto conserve - espace insuffisant (%FREE_GB% Go) >> "%LOG%"
+  echo [%date% %time%] Section 4 : Pagefile auto conserve - FREE non defini (wmic echoue) >> "%LOG%"
 )
 
 :: ═══════════════════════════════════════════════════════════
@@ -169,6 +169,8 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\
 
 :: Notifications toast désactivées
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v NoToastApplicationNotification /t REG_DWORD /d 1 /f >nul 2>&1
+:: Notifications toast — clé non-policy directe (effet immédiat sans redémarrage — prérequis ligne 270)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 
 :: AutoPlay / AutoRun désactivés (sécurité USB)
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoDriveTypeAutoRun /t REG_DWORD /d 255 /f >nul 2>&1
@@ -196,7 +198,20 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailor
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableSoftLanding /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsSpotlightFeatures /t REG_DWORD /d 1 /f >nul 2>&1
 
-echo [%date% %time%] Section 11 : Vie privee/Securite/WER/InputPerso/CloudContent OK >> "%LOG%"
+:: Maps — empêche màj cartes (complément service MapsBroker désactivé)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Maps" /v AutoDownloadAndUpdateMapData /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Maps" /v AllowUntriggeredNetworkTrafficOnSettingsPage /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Speech — empêche màj modèle vocal (complément tâche SpeechModelDownloadTask désactivée)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Speech" /v AllowSpeechModelUpdate /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Offline Files — policy (complément service CscService désactivé)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetCache" /v Enabled /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: AppPrivacy — empêche apps UWP de s'exécuter en arrière-plan (économie RAM sur 1 Go)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsRunInBackground /t REG_DWORD /d 2 /f >nul 2>&1
+
+echo [%date% %time%] Section 11 : Vie privee/Securite/WER/InputPerso/CloudContent/Maps/Speech/NetCache/AppPrivacy OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 12 — Interface utilisateur (style Windows 10)
@@ -305,12 +320,18 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\BingMapsGeocoder" /v Start /t RE
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\PushToInstall" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\tiledatamodelsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\FontCache" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: NDU — collecte stats réseau — consomme RAM/CPU inutilement
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Ndu" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Réseau discovery UPnP/SSDP — inutile sur poste de bureau non partagé
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\FDResPub" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\SSDPSRV" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\upnphost" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboot) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 15 — Arrêt immédiat des services listés
 :: ═══════════════════════════════════════════════════════════
-for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain) do (
+for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain Ndu FDResPub SSDPSRV upnphost) do (
   sc stop %%S >nul 2>&1
 )
 if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
