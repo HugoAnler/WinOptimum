@@ -63,10 +63,6 @@ if %FREE_GB% GEQ 10 (
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 5 — Mémoire : compression, prefetch, cache
 :: ═══════════════════════════════════════════════════════════
-:: Compression mémoire via MMAgent
-powershell -NoProfile -NonInteractive -Command "try { Enable-MMAgent -MemoryCompression -ErrorAction Stop } catch { }" >nul 2>&1
-echo [%date% %time%] Section 5 : Enable-MMAgent MemoryCompression attempted >> "%LOG%"
-
 :: Registre mémoire
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v LargeSystemCache /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management" /v MinFreeSystemCommit /t REG_DWORD /d 1 /f >nul 2>&1
@@ -99,7 +95,12 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DiagTrack" /v DisableTelemetry
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\SQM" /v DisableSQM /t REG_DWORD /d 1 /f >nul 2>&1
 :: [hors prérequis] DisableOSUpgrade=1 bloque la montée vers une version majeure future (ex. Windows 12)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v DisableOSUpgrade /t REG_DWORD /d 1 /f >nul 2>&1
-echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall OK >> "%LOG%"
+:: Feedback utilisateur (SIUF) — taux de solicitation à zéro
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v DoNotShowFeedbackNotifications /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Siuf\Rules" /v NumberOfSIUFInPeriod /t REG_DWORD /d 0 /f >nul 2>&1
+:: CEIP désactivé via registre (complément aux tâches planifiées section 17)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\SQMClient\Windows" /v CEIPEnable /t REG_DWORD /d 0 /f >nul 2>&1
+echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 7 — AutoLoggers télémétrie (désactivation à la source)
@@ -177,11 +178,25 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v No
 :: Bloatware auto-install Microsoft bloqué
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsConsumerFeatures /t REG_DWORD /d 1 /f >nul 2>&1
 
-:: WerFault / Rapport erreurs désactivé
+:: WerFault / Rapport erreurs désactivé (clés non-policy)
 reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontSendAdditionalData /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v LoggingDisabled /t REG_DWORD /d 1 /f >nul 2>&1
+:: WER désactivé via policy path (prioritaire sur les clés non-policy ci-dessus)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting" /v Disabled /t REG_DWORD /d 1 /f >nul 2>&1
 
-echo [%date% %time%] Section 11 : Vie privee/Securite OK >> "%LOG%"
+:: Input Personalization — policy HKLM (appliqué system-wide, complément des clés HKCU)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v RestrictImplicitInkCollection /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v RestrictImplicitTextCollection /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Notifications toast — HKLM policy (system-wide, complément du HKCU ligne 170)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v NoToastApplicationNotification /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: CloudContent — expériences personnalisées / Spotlight / SoftLanding
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailoredExperiencesWithDiagnosticData /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableSoftLanding /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsSpotlightFeatures /t REG_DWORD /d 1 /f >nul 2>&1
+
+echo [%date% %time%] Section 11 : Vie privee/Securite/WER/InputPerso/CloudContent OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 12 — Interface utilisateur (style Windows 10)
@@ -223,6 +238,9 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DisableS
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v UserSetting_DisableStartupSound /t REG_DWORD /d 1 /f >nul 2>&1
 
 :: Hibernation désactivée / Fast Startup désactivé (HKLM)
+:: Registre en priorité (prérequis) — powercfg en complément pour supprimer hiberfil.sys
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v HibernateEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power" /v HibernateEnabledDefault /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Power" /v HiberbootEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 powercfg /h off >nul 2>&1
 
@@ -319,7 +337,7 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
   echo 0.0.0.0 pipe.skype.com
 ) >> "%HOSTSFILE%" 2>nul
 
-:: Hosts Adobe — commentés par défaut (KEEP_ADOBE=1 pour activer)
+:: Hosts Adobe — commentés par défaut (BLOCK_ADOBE=1 pour activer)
 if "%BLOCK_ADOBE%"=="1" (
   (
     echo 0.0.0.0 lmlicenses.wip4.adobe.com
@@ -334,8 +352,15 @@ if "%BLOCK_ADOBE%"=="1" (
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 17 — Tâches planifiées désactivées
-:: Appels individuels — pas de for loop (chemins avec espaces)
+:: Bloc registre GPO en premier — empêche la réactivation automatique
+:: puis schtasks individuels (complément nécessaire — pas de clé registre directe)
 :: ═══════════════════════════════════════════════════════════
+:: GPO AppCompat — bloque la réactivation des tâches Application Experience / CEIP
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v DisableUAR /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v DisableInventory /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v DisablePCA /t REG_DWORD /d 1 /f >nul 2>&1
+echo [%date% %time%] Section 17a : AppCompat GPO registre OK >> "%LOG%"
+
 schtasks /Change /TN "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" /Disable >nul 2>&1
 schtasks /Change /TN "\Microsoft\Windows\Application Experience\ProgramDataUpdater" /Disable >nul 2>&1
 schtasks /Change /TN "\Microsoft\Windows\Application Experience\StartupAppTask" /Disable >nul 2>&1
