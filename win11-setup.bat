@@ -100,6 +100,21 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v DoNotShowFe
 reg add "HKLM\SOFTWARE\Microsoft\Siuf\Rules" /v NumberOfSIUFInPeriod /t REG_DWORD /d 0 /f >nul 2>&1
 :: CEIP désactivé via registre (complément aux tâches planifiées section 17)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\SQMClient\Windows" /v CEIPEnable /t REG_DWORD /d 0 /f >nul 2>&1
+:: Recall 25H2 — clés supplémentaires au-delà de AllowRecallEnablement=0
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v DisableRecallSnapshots /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v TurnOffSavingSnapshots /t REG_DWORD /d 1 /f >nul 2>&1
+:: Recall per-user (HKCU)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsAI" /v RecallFeatureEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsAI" /v HideRecallUIElements /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsAI" /v AIDashboardEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+:: IA Windows 25H2 — master switch NPU/ML
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsAI" /v EnableWindowsAI /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsAI" /v AllowOnDeviceML /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v DisableWinMLFeatures /t REG_DWORD /d 1 /f >nul 2>&1
+:: Copilot — désactiver le composant service background (complément TurnOffWindowsCopilot)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot" /v DisableCopilotService /t REG_DWORD /d 1 /f >nul 2>&1
+:: SIUF — période à zéro (complément NumberOfSIUFInPeriod=0)
+reg add "HKCU\SOFTWARE\Microsoft\Siuf\Rules" /v PeriodInNanoSeconds /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -117,6 +132,13 @@ echo [%date% %time%] Section 7 : AutoLoggers desactives >> "%LOG%"
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsSearch" /v DisableWebSearch /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsSearch" /v BingSearchEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsSearch" /v DisableSearchBoxSuggestions /t REG_DWORD /d 1 /f >nul 2>&1
+:: Search HKCU — Bing et Cortana per-user (complément policies HKLM ci-dessus)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v BingSearchEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v CortanaConsent /t REG_DWORD /d 0 /f >nul 2>&1
+:: Windows Search policy — cloud et localisation
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v ConnectedSearchUseWeb /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudSearch /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowSearchToUseLocation /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 8 : WindowsSearch policies OK (WSearch conserve) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -129,6 +151,18 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v AppCaptureEn
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v GameDVR_Enabled /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR" /v AllowGameDVR /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization" /v DODownloadMode /t REG_DWORD /d 0 /f >nul 2>&1
+:: Edge — Copilot et fonctions IA désactivées
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v HubsSidebarEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeCopilotEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v CopilotPageContext /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeShoppingAssistantEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v PersonalizationReportingEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeEnhanceImagesEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SpotlightExperiencesAndRecommendationsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+:: Edge — pré-lancement désactivé (empêche Edge de se lancer avant toute demande)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main" /v AllowPrelaunch /t REG_DWORD /d 0 /f >nul 2>&1
+:: GameDVR — désactiver les optimisations plein écran (réduit overhead GPU)
+reg add "HKCU\System\GameConfigStore" /v GameDVR_FSEBehavior /t REG_DWORD /d 2 /f >nul 2>&1
 echo [%date% %time%] Section 9 : Edge/GameDVR/DeliveryOptimization OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -157,6 +191,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Connect" /v AllowProjectionToP
 
 :: Remote Assistance désactivé
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Remote Assistance" /v fAllowToGetHelp /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\Remote Assistance" /v fAllowFullControl /t REG_DWORD /d 0 /f >nul 2>&1
 
 :: Input Personalization (collecte frappe / encre)
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\InputPersonalization" /v RestrictImplicitInkCollection /t REG_DWORD /d 1 /f >nul 2>&1
@@ -185,6 +220,8 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontSendAdd
 reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v LoggingDisabled /t REG_DWORD /d 1 /f >nul 2>&1
 :: WER désactivé via policy path (prioritaire sur les clés non-policy ci-dessus)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Error Reporting" /v Disabled /t REG_DWORD /d 1 /f >nul 2>&1
+:: WER — masquer l'UI (complément DontSendAdditionalData)
+reg add "HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting" /v DontShowUI /t REG_DWORD /d 1 /f >nul 2>&1
 
 :: Input Personalization — policy HKLM (appliqué system-wide, complément des clés HKCU)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v RestrictImplicitInkCollection /t REG_DWORD /d 1 /f >nul 2>&1
@@ -212,6 +249,80 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetCache" /v Enabled /t REG_DW
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsRunInBackground /t REG_DWORD /d 2 /f >nul 2>&1
 
 echo [%date% %time%] Section 11 : Vie privee/Securite/WER/InputPerso/CloudContent/Maps/Speech/NetCache/AppPrivacy OK >> "%LOG%"
+
+:: ═══════════════════════════════════════════════════════════
+:: SECTION 11b — CDP / Cloud Clipboard / ContentDeliveryManager / AppPrivacy étendu
+:: ═══════════════════════════════════════════════════════════
+:: Activity History — clés complémentaires (EnableActivityFeed couvert en section 11)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v PublishUserActivities /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v UploadUserActivities /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Cloud Clipboard et CDP Nearby Share désactivés
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v AllowClipboardHistory /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v AllowCrossDeviceClipboard /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v DisableCdp /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\CDP" /v RomeSdkChannelUserAuthzPolicy /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\CDP" /v CdpSessionUserAuthzPolicy /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: NCSI — stopper les probes vers msftconnecttest.com
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator" /v NoActiveProbe /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Wi-Fi Sense — auto-connect désactivé
+reg add "HKLM\SOFTWARE\Microsoft\WcmSvc\wifinetworkmanager\config" /v AutoConnectAllowedOEM /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Input Personalization — arrêt collecte contacts pour autocomplete
+reg add "HKCU\SOFTWARE\Microsoft\InputPersonalization\TrainedDataStore" /v HarvestContacts /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: ContentDeliveryManager — bloquer réinstallation silencieuse apps après màj majeure (CRITIQUE)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v SilentInstalledAppsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v ContentDeliveryAllowed /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v OemPreInstalledAppsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v PreInstalledAppsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v SoftLandingEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v SystemPaneSuggestionsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v RotatingLockScreenEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v RotatingLockScreenOverlayEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-338387Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-338388Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-310093Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-353698Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: AppPrivacy — blocage global accès capteurs/données par apps UWP (complément LetAppsRunInBackground)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessCamera /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessMicrophone /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessLocation /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessAccountInfo /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessContacts /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessCalendar /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessCallHistory /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessEmail /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessMessaging /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessTasks /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessRadios /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsActivateWithVoice /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsActivateWithVoiceAboveLock /t REG_DWORD /d 2 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessBackgroundSpatialPerception /t REG_DWORD /d 2 /f >nul 2>&1
+
+:: Lock Screen — désactiver caméra et diaporama
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" /v NoLockScreenCamera /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" /v NoLockScreenSlideshow /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Écriture manuscrite — partage données désactivé
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\TabletPC" /v PreventHandwritingDataSharing /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\HandwritingErrorReports" /v PreventHandwritingErrorReports /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Maintenance automatique Windows — désactiver (évite le polling Microsoft et les réveils réseau)
+reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\Maintenance" /v MaintenanceDisabled /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Localisation — clés supplémentaires (complément DisableLocation section 11)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" /v DisableLocationScripting /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" /v DisableWindowsLocationProvider /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" /v DisableSensors /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Langue — ne pas exposer la liste de langues aux sites web
+reg add "HKCU\Control Panel\International\User Profile" /v HttpAcceptLanguageOptOut /t REG_DWORD /d 1 /f >nul 2>&1
+
+echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 12 — Interface utilisateur (style Windows 10)
@@ -263,6 +374,19 @@ powercfg /h off >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoResolveTrack /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoRecentDocsHistory /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoInstrumentation /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Copilot — masquer le bouton dans la barre des tâches (HKCU per-user)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowCopilotButton /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Démarrer — arrêter le suivi programmes et documents récents
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackProgs /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackDocs /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Démarrer — masquer apps récemment ajoutées (HKLM policy)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v HideRecentlyAddedApps /t REG_DWORD /d 1 /f >nul 2>&1
+
+:: Widgets — masquer le fil d'actualités (2=masqué — complément AllowNewsAndInterests=0)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /t REG_DWORD /d 2 /f >nul 2>&1
 
 echo [%date% %time%] Section 12 : Interface OK >> "%LOG%"
 
@@ -326,12 +450,39 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\Ndu" /v Start /t REG_DWORD /d 4 
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\FDResPub" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\SSDPSRV" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\upnphost" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Services 25H2 IA / Recall
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Recall" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\WindowsAIService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\WinMLService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\CoPilotMCPService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Cloud clipboard / sync cross-device
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\cbdhsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\CDPUserSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\DevicesFlowUserSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Push notifications (livraison de pubs et alertes MS)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\WpnService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\WpnUserService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: GameDVR broadcast user
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\BcastDVRUserService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Diagnostics Policy / Hosts de diagnostic (déclenchent des troubleshooters qui phoned home)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\DPS" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\WdiSystemHost" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\WdiServiceHost" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\diagnosticshub.standardcollector.service" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Divers inutiles sur PC de bureau 1 Go RAM
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\DusmSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\icssvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\SEMgrSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\WpcMonSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\MixedRealityOpenXRSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NaturalAuthentication" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\SmsRouter" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboot) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 15 — Arrêt immédiat des services listés
 :: ═══════════════════════════════════════════════════════════
-for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain Ndu FDResPub SSDPSRV upnphost) do (
+for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain Ndu FDResPub SSDPSRV upnphost Recall WindowsAIService WinMLService CoPilotMCPService cbdhsvc CDPUserSvc DevicesFlowUserSvc WpnService WpnUserService BcastDVRUserService DPS WdiSystemHost WdiServiceHost DusmSvc icssvc SEMgrSvc WpcMonSvc MixedRealityOpenXRSvc NaturalAuthentication SmsRouter diagnosticshub.standardcollector.service) do (
   sc stop %%S >nul 2>&1
 )
 if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
@@ -358,6 +509,15 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
   echo 0.0.0.0 v20.events.data.microsoft.com
   echo 0.0.0.0 self.events.data.microsoft.com
   echo 0.0.0.0 pipe.skype.com
+  echo 0.0.0.0 copilot.microsoft.com
+  echo 0.0.0.0 sydney.bing.com
+  echo 0.0.0.0 feedback.windows.com
+  echo 0.0.0.0 oca.microsoft.com
+  echo 0.0.0.0 watson.microsoft.com
+  echo 0.0.0.0 bingads.microsoft.com
+  echo 0.0.0.0 eu-mobile.events.data.microsoft.com
+  echo 0.0.0.0 us-mobile.events.data.microsoft.com
+  echo 0.0.0.0 mobile.events.data.microsoft.com
 ) >> "%HOSTSFILE%" 2>nul
 
 :: Hosts Adobe — commentés par défaut (BLOCK_ADOBE=1 pour activer)
@@ -406,6 +566,39 @@ schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" /Disable >nu
 schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" /Disable >nul 2>&1
 schtasks /Change /TN "\Microsoft\Windows\Defrag\ScheduledDefrag" /Disable >nul 2>&1
 schtasks /Change /TN "\Microsoft\Windows\Diagnosis\Scheduled" /Disable >nul 2>&1
+:: Application Experience supplémentaires
+schtasks /Change /TN "\Microsoft\Windows\Application Experience\AitAgent" /Disable >nul 2>&1
+schtasks /Change /TN "\Microsoft\Windows\Application Experience\PcaPatchDbTask" /Disable >nul 2>&1
+:: CEIP supplémentaires
+schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\BthSQM" /Disable >nul 2>&1
+schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\Uploader" /Disable >nul 2>&1
+:: Device Information — collecte infos matériel envoyées à Microsoft
+schtasks /Change /TN "\Microsoft\Windows\Device Information\Device" /Disable >nul 2>&1
+schtasks /Change /TN "\Microsoft\Windows\Device Information\Device User" /Disable >nul 2>&1
+:: DiskFootprint telemetry
+schtasks /Change /TN "\Microsoft\Windows\DiskFootprint\Diagnostics" /Disable >nul 2>&1
+:: Flighting / OneSettings — serveur push config Microsoft
+schtasks /Change /TN "\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures" /Disable >nul 2>&1
+schtasks /Change /TN "\Microsoft\Windows\Flighting\OneSettings\RefreshCache" /Disable >nul 2>&1
+:: WinSAT — benchmark envoyé à Microsoft
+schtasks /Change /TN "\Microsoft\Windows\Maintenance\WinSAT" /Disable >nul 2>&1
+:: SQM — Software Quality Metrics
+schtasks /Change /TN "\Microsoft\Windows\PI\Sqm-Tasks" /Disable >nul 2>&1
+:: UpdateOrchestrator — rapport policy télémétrie
+schtasks /Change /TN "\Microsoft\Windows\UpdateOrchestrator\Report policies" /Disable >nul 2>&1
+:: CloudExperienceHost — onboarding IA/OOBE
+schtasks /Change /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" /Disable >nul 2>&1
+:: Windows Store telemetry
+schtasks /Change /TN "\Microsoft\Windows\WS\WSTask" /Disable >nul 2>&1
+:: Clipboard license validation
+schtasks /Change /TN "\Microsoft\Windows\Clip\License Validation" /Disable >nul 2>&1
+:: Xbox GameSave logon (complement de XblGameSaveTask deja desactive)
+schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTaskLogon" /Disable >nul 2>&1
+:: IA / Recall / Copilot 25H2
+schtasks /Change /TN "\Microsoft\Windows\AI\AIXSvcTaskMaintenance" /Disable >nul 2>&1
+schtasks /Change /TN "\Microsoft\Windows\Copilot\CopilotDailyReport" /Disable >nul 2>&1
+schtasks /Change /TN "\Microsoft\Windows\Recall\IndexerRecoveryTask" /Disable >nul 2>&1
+schtasks /Change /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" /Disable >nul 2>&1
 echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -476,7 +669,12 @@ powershell -NoProfile -NonInteractive -Command ^
     'MicrosoftCorporationII.MicrosoftFamily', ^
     'Netflix', ^
     'SpotifyAB.SpotifyMusic', ^
-    'clipchamp.Clipchamp' ^
+    'clipchamp.Clipchamp', ^
+    'MicrosoftCorporationII.PhoneLink', ^
+    'Microsoft.YourPhone', ^
+    'Microsoft.Windows.Ai.Copilot.Provider', ^
+    'Microsoft.WindowsRecall', ^
+    'Microsoft.RecallApp' ^
   ); ^
   foreach ($a in $apps) { ^
     try { Get-AppxPackage -Name $a -AllUsers -ErrorAction SilentlyContinue | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue } } catch {} ^
