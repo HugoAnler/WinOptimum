@@ -336,6 +336,8 @@ for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport
 )
 if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
 echo [%date% %time%] Section 15 : sc stop envoye aux services listes >> "%LOG%"
+:: Paramètres de récupération DiagTrack — Ne rien faire sur toutes défaillances
+sc failure DiagTrack reset= 0 actions= none/0/none/0/none/0 >nul 2>&1
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 16 — Fichier hosts (blocage télémétrie)
