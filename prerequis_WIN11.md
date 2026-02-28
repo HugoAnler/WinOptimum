@@ -285,7 +285,7 @@ Ces services ne doivent **jamais** être désactivés :
 | Copilot désactivé                         | `TurnOffWindowsCopilot=1` (HKLM + HKCU)                |
 | IA Windows 25H2 désactivée               | `HKLM\...\WindowsAI\DisableAIDataAnalysis=1`            |
 | Game DVR désactivé                        | `GameDVR_Enabled=0` + `AllowGameDVR=0`                  |
-| Compression mémoire                       | `Enable-MMAgent -MemoryCompression`                     |
+| Compression mémoire                       | `EnableMemoryCompression=1` (`HKLM\...\MMAgent` — registre natif) |
 | Fast Startup désactivé                    | `HiberbootEnabled=0`                                    |
 | Hibernation off                           | `powercfg /h off`                                       |
 | Pagefile fixe **6 Go**                    | InitialSize=6144 MaximumSize=6144 (1 Go RAM)            |
@@ -475,7 +475,7 @@ Exception tolérée : confirmation d'état (`sc stop DiagTrack`) pour s'assurer 
 | `reg add` (clé registre native) | ✅ **1 — prioritaire** | Dès que la clé existe — toujours préférer |
 | `sc config ... start= disabled` | ⚠️ 2 — complément | Uniquement si aucune clé `Start` registre disponible (rare) |
 | `schtasks /Change /Disable` | ⚠️ 2 — complément | Tâches planifiées uniquement — pas de clé registre équivalente |
-| `powershell -Command ...` | ⚠️ 3 — dernier recours | Uniquement si registre impossible (ex. `Enable-MMAgent`, `Checkpoint-Computer`) |
+| `powershell -Command ...` | ⚠️ 3 — dernier recours | Uniquement si registre impossible (ex. `Checkpoint-Computer`) |
 | `wmic`, `Set-WmiInstance`, `Win32_ComputerSystem.Put()` | ❌ **INTERDIT** | Jamais — token COM absent en FirstLogonCommands |
 
 **Exemples :**
@@ -541,11 +541,15 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management
 
 ```bat
 :: ❌ FAUX — exception terminante possible
-powershell -NoProfile -Command "Enable-MMAgent -MemoryCompression" >nul 2>&1
+powershell -NoProfile -Command "Checkpoint-Computer -Description 'test'" >nul 2>&1
 
 :: ✅ CORRECT — exception absorbée, exit code garanti 0
-powershell -NoProfile -NonInteractive -Command "try { Enable-MMAgent -MemoryCompression -ErrorAction Stop } catch { }" >nul 2>&1
+powershell -NoProfile -NonInteractive -Command "try { Checkpoint-Computer -Description 'test' -ErrorAction Stop } catch { }" >nul 2>&1
 ```
+
+> Note : `Enable-MMAgent -MemoryCompression` est souvent cité comme exemple, mais la clé registre
+> native `EnableMemoryCompression=1` (sous `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\MMAgent`)
+> est préférable et doit être utilisée à la place (règle "registre en priorité").
 
 **✅ `echo` de traçabilité obligatoire après chaque bloc critique**
 
