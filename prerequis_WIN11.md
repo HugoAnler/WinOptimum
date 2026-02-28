@@ -86,6 +86,11 @@ Ces apps ne doivent **jamais** être supprimées, peu importe le profil :
 | `MicrosoftWindows.CrossDevice`             | Cross-device                      |
 | `MicrosoftCorporationII.QuickAssist`       | Assistance rapide                 |
 | `MicrosoftCorporationII.MicrosoftFamily`   | Famille Microsoft                 |
+| `MicrosoftCorporationII.PhoneLink`         | Phone Link (nouveau nom 22H2+)    |
+| `Microsoft.YourPhone`                      | Phone Link (ancien nom)           |
+| `Microsoft.Windows.Ai.Copilot.Provider`    | Provider Copilot IA               |
+| `Microsoft.WindowsRecall`                  | Recall IA (nom exact package)     |
+| `Microsoft.RecallApp`                      | Recall IA (nom alternatif)        |
 | `Netflix`                                  | Streaming tiers                   |
 | `SpotifyAB.SpotifyMusic`                   | Streaming musique tiers           |
 | `clipchamp.Clipchamp`                      | Éditeur vidéo                     |
@@ -159,6 +164,31 @@ Ces services ne doivent **jamais** être désactivés :
 | `tiledatamodelsvc`    | Tuiles live menu démarrer — inutile                 |
 | `SysMain`             | Superfetch — désactivé inconditionnellement (1 Go RAM) |
 | `FontCache`           | Cache de polices — consomme RAM inutilement         |
+| `cbdhsvc`             | Cloud Clipboard — envoie le presse-papiers à Microsoft |
+| `WpnService`          | Push Notifications system (livraison de pubs MS)    |
+| `WpnUserService`      | Push Notifications user service                     |
+| `CDPUserSvc`          | Connected Devices Platform user (cross-device sync) |
+| `DevicesFlowUserSvc`  | Devices Flow — expérience Phone Link                |
+| `BcastDVRUserService` | GameDVR broadcast user service                      |
+| `DPS`                 | Diagnostic Policy Service — troubleshooters qui phoned home |
+| `WdiSystemHost`       | Diagnostic System Host                              |
+| `WdiServiceHost`      | Diagnostic Service Host                             |
+| `diagnosticshub.standardcollector.service` | Diagnostics Hub — collecte dev/télémétrie |
+| `DusmSvc`             | Data Usage — stats réseau par app                   |
+| `icssvc`              | Mobile Hotspot — inutile sur PC de bureau           |
+| `SEMgrSvc`            | Payments and NFC Manager                            |
+| `WpcMonSvc`           | Parental Controls (app supprimée)                   |
+| `MixedRealityOpenXRSvc` | Mixed Reality OpenXR (app supprimée)              |
+| `NaturalAuthentication` | Natural Authentication (biométrie de proximité)   |
+| `SmsRouter`           | SMS Router via Phone Link                           |
+| `Ndu`                 | Network Data Usage — stats réseau par app (RAM/CPU) |
+| `FDResPub`            | Function Discovery Resource Publication — découverte réseau LAN |
+| `SSDPSRV`             | SSDP Discovery — protocole UPnP inutile sur PC fixe |
+| `upnphost`            | UPnP Device Host — inutile sur PC fixe non partagé  |
+| `Recall`              | Recall AI — service captures écran 25H2             |
+| `WindowsAIService`    | Windows AI Service — orchestrateur NPU (25H2)       |
+| `WinMLService`        | Windows ML inference broker (25H2)                  |
+| `CoPilotMCPService`   | Copilot Model Context Protocol (25H2)               |
 
 > ⚠️ `WSearch` : **NE PAS ajouter à cette liste** — toujours conservé sans exception
 
@@ -190,6 +220,26 @@ Ces services ne doivent **jamais** être désactivés :
 | `\Microsoft\Windows\Shell\FamilySafetyRefreshTask`                                | Contrôle parental             |
 | `\Microsoft\Windows\Defrag\ScheduledDefrag`                                       | Défragmentation automatique   |
 | `\Microsoft\Windows\Diagnosis\Scheduled`                                          | Diagnostic automatique        |
+| `\Microsoft\Windows\Application Experience\AitAgent`                              | Application Impact Telemetry  |
+| `\Microsoft\Windows\Application Experience\PcaPatchDbTask`                        | Patching DB compatibilité     |
+| `\Microsoft\Windows\Customer Experience Improvement Program\BthSQM`               | CEIP Bluetooth                |
+| `\Microsoft\Windows\Customer Experience Improvement Program\Uploader`             | Envoi données CEIP            |
+| `\Microsoft\Windows\Device Information\Device`                                    | Collecte infos matériel       |
+| `\Microsoft\Windows\Device Information\Device User`                               | Collecte infos user/matériel  |
+| `\Microsoft\Windows\DiskFootprint\Diagnostics`                                    | Télémétrie empreinte disque   |
+| `\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures`                    | Windows Insider flighting     |
+| `\Microsoft\Windows\Flighting\OneSettings\RefreshCache`                           | Push config serveur Microsoft |
+| `\Microsoft\Windows\Maintenance\WinSAT`                                           | Benchmark envoyé à Microsoft  |
+| `\Microsoft\Windows\PI\Sqm-Tasks`                                                 | Software Quality Metrics      |
+| `\Microsoft\Windows\UpdateOrchestrator\Report policies`                           | Rapport policy vers Microsoft |
+| `\Microsoft\Windows\CloudExperienceHost\CreateObjectTask`                         | Onboarding IA/OOBE cloud      |
+| `\Microsoft\Windows\WS\WSTask`                                                    | Windows Store télémétrie      |
+| `\Microsoft\Windows\Clip\License Validation`                                      | Validation licence Clipboard  |
+| `\Microsoft\XblGameSave\XblGameSaveTaskLogon`                                     | Xbox GameSave au logon        |
+| `\Microsoft\Windows\AI\AIXSvcTaskMaintenance`                                     | Maintenance IA Service (25H2) |
+| `\Microsoft\Windows\Copilot\CopilotDailyReport`                                   | Rapport Copilot (25H2)        |
+| `\Microsoft\Windows\Recall\IndexerRecoveryTask`                                   | Recall indexer (25H2)         |
+| `\Microsoft\Windows\Recall\RecallScreenshotTask`                                  | Recall captures (25H2)        |
 
 ---
 
@@ -209,6 +259,15 @@ Ces services ne doivent **jamais** être désactivés :
 | `v20.events.data.microsoft.com`      | Events pipeline télémétrie    |
 | `self.events.data.microsoft.com`     | Events pipeline télémétrie    |
 | `pipe.skype.com`                     | Télémétrie Skype/Teams        |
+| `copilot.microsoft.com`              | Service Copilot Microsoft     |
+| `sydney.bing.com`                    | Bing AI / Copilot chat        |
+| `feedback.windows.com`              | Feedback Windows              |
+| `oca.microsoft.com`                  | WER Online Crash Analysis     |
+| `watson.microsoft.com`               | WER télémétrie Watson         |
+| `bingads.microsoft.com`              | Publicités Bing               |
+| `eu-mobile.events.data.microsoft.com` | Pipeline Aria télémétrie (EU) |
+| `us-mobile.events.data.microsoft.com` | Pipeline Aria télémétrie (US) |
+| `mobile.events.data.microsoft.com`  | Pipeline Aria télémétrie      |
 
 > Adobe (commenté par défaut — activer si pas de logiciel Adobe) :
 > `lmlicenses.wip4.adobe.com`, `lm.licenses.adobe.com`, `practivate.adobe.com`, `activate.adobe.com`
@@ -268,6 +327,35 @@ Ces services ne doivent **jamais** être désactivés :
 | Interface Win10 : effets visuels minimalistes | `VisualFXSetting=2`, `MinAnimate=0`                 |
 | Interface Win10 : Démarrer sans recommandations | `HideRecommendedSection=1` — GPO Pro/Enterprise     |
 | Notifications toast désactivées           | `ToastEnabled=0`                                        |
+| Recall 25H2 — clés supplémentaires        | `DisableRecallSnapshots=1` + `TurnOffSavingSnapshots=1` + HKCU `RecallFeatureEnabled=0` |
+| AppCompat GPO — blocage réactivation tâches AE/CEIP | `DisableUAR=1` + `DisableInventory=1` + `DisablePCA=1` (complément avant `schtasks /Disable`) |
+| Copilot service background désactivé      | `DisableCopilotService=1` — complément `TurnOffWindowsCopilot=1` |
+| Bouton Copilot masqué                     | HKCU `ShowCopilotButton=0`                              |
+| IA Windows 25H2 — master switch           | `EnableWindowsAI=0` + `AllowOnDeviceML=0` + `DisableWinMLFeatures=1` |
+| SIUF — période à zéro                     | HKCU `PeriodInNanoSeconds=0`                            |
+| Search HKCU Bing/Cortana désactivé        | `BingSearchEnabled=0` + `CortanaConsent=0` (per-user)   |
+| Windows Search — cloud désactivé          | `AllowCloudSearch=0` + `ConnectedSearchUseWeb=0`        |
+| Edge Copilot/sidebar désactivé            | `HubsSidebarEnabled=0` + `EdgeCopilotEnabled=0` + `CopilotPageContext=0` |
+| Edge pre-launch désactivé                 | `AllowPrelaunch=0`                                      |
+| Edge télémétrie Aria désactivée           | `AriaTelemetryEnabled=0`                                |
+| Edge shopping/IA/images personnalisés off | `EdgeShoppingAssistantEnabled=0` + `PersonalizationReportingEnabled=0` + `EdgeEnhanceImagesEnabled=0` + `SpotlightExperiencesAndRecommendationsEnabled=0` |
+| GameDVR — fullscreen optimizations off    | HKCU `GameDVR_FSEBehavior=2`                            |
+| Remote Assistance — contrôle total bloqué | `fAllowFullControl=0`                                   |
+| WER — pas d'UI                            | `DontShowUI=1`                                          |
+| Cloud Clipboard désactivé                 | `AllowClipboardHistory=0` + `AllowCrossDeviceClipboard=0` |
+| CDP / Nearby Share désactivé              | `DisableCdp=1` — bloque cross-device                    |
+| NCSI — stop probes msftconnecttest.com    | `NoActiveProbe=1`                                       |
+| Wi-Fi Sense — auto-connect désactivé      | `AutoConnectAllowedOEM=0`                               |
+| InputPersonalization — contacts           | HKCU `HarvestContacts=0`                                |
+| ContentDeliveryManager — bloque réinstall | `SilentInstalledAppsEnabled=0` + `ContentDeliveryAllowed=0` + SubscribedContent-* |
+| AppPrivacy — blocage global sensors/data  | `LetAppsAccessCamera/Microphone/Location/...=2` (14 permissions) |
+| Lock Screen — caméra et diaporama off     | `NoLockScreenCamera=1` + `NoLockScreenSlideshow=1`      |
+| Écriture manuscrite — partage off         | `PreventHandwritingDataSharing=1`                       |
+| Maintenance automatique Windows désactivée| `MaintenanceDisabled=1`                                 |
+| Start Menu — suivi programmes off         | HKCU `Start_TrackProgs=0` + `Start_TrackDocs=0`         |
+| Feeds — fil d'actualités masqué           | HKCU `ShellFeedsTaskbarViewMode=2`                      |
+| Localisation — clés complètes             | `DisableLocationScripting=1` + `DisableWindowsLocationProvider=1` + `DisableSensors=1` |
+| Langue — liste non exposée aux sites web  | HKCU `HttpAcceptLanguageOptOut=1`                       |
 
 ---
 
@@ -313,6 +401,7 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Désactiver stack VPN RAS              | CyberGhost en dépend potentiellement                          |
 | Désactiver `TokenBroker`              | OneDrive et Edge en dépendent                                 |
 | Désactiver `OneSyncSvc`               | OneDrive en dépend — jamais désactivé                         |
+| Désactiver `wlidsvc`                  | Microsoft Account Sign-in Assistant — OneDrive et Edge en dépendent |
 | Omettre la suppression fichiers Panther | Mot de passe admin exposé en clair — risque sécurité        |
 | `Win32_ComputerSystem.Put()` / `Set-WmiInstance` / `wmic pagefileset` dans le BAT | Token COM/WMI absent en `FirstLogonCommands` — arrêt silencieux du script — utiliser clés registre |
 | Commande PowerShell sans `-NonInteractive` + `try/catch`     | Exception PS propage exit code ≠ 0 → arrêt silencieux du BAT parent  |
