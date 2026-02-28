@@ -93,8 +93,6 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v DontSendAddition
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v LoggingDisabled /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DiagTrack" /v DisableTelemetry /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\SQM" /v DisableSQM /t REG_DWORD /d 1 /f >nul 2>&1
-:: [hors prérequis] DisableOSUpgrade=1 bloque la montée vers une version majeure future (ex. Windows 12)
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v DisableOSUpgrade /t REG_DWORD /d 1 /f >nul 2>&1
 :: Feedback utilisateur (SIUF) — taux de solicitation à zéro
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v DoNotShowFeedbackNotifications /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Siuf\Rules" /v NumberOfSIUFInPeriod /t REG_DWORD /d 0 /f >nul 2>&1
@@ -489,6 +487,7 @@ if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
 echo [%date% %time%] Section 15 : sc stop envoye aux services listes >> "%LOG%"
 :: Paramètres de récupération DiagTrack — Ne rien faire sur toutes défaillances
 sc failure DiagTrack reset= 0 actions= none/0/none/0/none/0 >nul 2>&1
+echo [%date% %time%] Section 15 : sc failure DiagTrack (aucune action sur defaillance) OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 16 — Fichier hosts (blocage télémétrie)

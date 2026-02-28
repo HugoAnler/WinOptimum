@@ -181,6 +181,10 @@ Ces services ne doivent **jamais** être désactivés :
 | `MixedRealityOpenXRSvc` | Mixed Reality OpenXR (app supprimée)              |
 | `NaturalAuthentication` | Natural Authentication (biométrie de proximité)   |
 | `SmsRouter`           | SMS Router via Phone Link                           |
+| `Ndu`                 | Network Data Usage — stats réseau par app (RAM/CPU) |
+| `FDResPub`            | Function Discovery Resource Publication — découverte réseau LAN |
+| `SSDPSRV`             | SSDP Discovery — protocole UPnP inutile sur PC fixe |
+| `upnphost`            | UPnP Device Host — inutile sur PC fixe non partagé  |
 | `Recall`              | Recall AI — service captures écran 25H2             |
 | `WindowsAIService`    | Windows AI Service — orchestrateur NPU (25H2)       |
 | `WinMLService`        | Windows ML inference broker (25H2)                  |
@@ -324,6 +328,7 @@ Ces services ne doivent **jamais** être désactivés :
 | Interface Win10 : Démarrer sans recommandations | `HideRecommendedSection=1` — GPO Pro/Enterprise     |
 | Notifications toast désactivées           | `ToastEnabled=0`                                        |
 | Recall 25H2 — clés supplémentaires        | `DisableRecallSnapshots=1` + `TurnOffSavingSnapshots=1` + HKCU `RecallFeatureEnabled=0` |
+| AppCompat GPO — blocage réactivation tâches AE/CEIP | `DisableUAR=1` + `DisableInventory=1` + `DisablePCA=1` (complément avant `schtasks /Disable`) |
 | Copilot service background désactivé      | `DisableCopilotService=1` — complément `TurnOffWindowsCopilot=1` |
 | Bouton Copilot masqué                     | HKCU `ShowCopilotButton=0`                              |
 | IA Windows 25H2 — master switch           | `EnableWindowsAI=0` + `AllowOnDeviceML=0` + `DisableWinMLFeatures=1` |
@@ -332,6 +337,8 @@ Ces services ne doivent **jamais** être désactivés :
 | Windows Search — cloud désactivé          | `AllowCloudSearch=0` + `ConnectedSearchUseWeb=0`        |
 | Edge Copilot/sidebar désactivé            | `HubsSidebarEnabled=0` + `EdgeCopilotEnabled=0` + `CopilotPageContext=0` |
 | Edge pre-launch désactivé                 | `AllowPrelaunch=0`                                      |
+| Edge télémétrie Aria désactivée           | `AriaTelemetryEnabled=0`                                |
+| Edge shopping/IA/images personnalisés off | `EdgeShoppingAssistantEnabled=0` + `PersonalizationReportingEnabled=0` + `EdgeEnhanceImagesEnabled=0` + `SpotlightExperiencesAndRecommendationsEnabled=0` |
 | GameDVR — fullscreen optimizations off    | HKCU `GameDVR_FSEBehavior=2`                            |
 | Remote Assistance — contrôle total bloqué | `fAllowFullControl=0`                                   |
 | WER — pas d'UI                            | `DontShowUI=1`                                          |
