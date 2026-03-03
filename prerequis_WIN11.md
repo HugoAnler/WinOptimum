@@ -407,6 +407,7 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Commande PowerShell sans `-NonInteractive` + `try/catch`     | Exception PS propage exit code ≠ 0 → arrêt silencieux du BAT parent  |
 | **Mettre des clés de registre dans `autounattend.xml`**  | **Le XML ne contient que le strict minimum setup — tout le registre est dans le .bat** |
 | Modifier `Win32PrioritySeparation`       | Valeur Windows par défaut conservée — ne jamais écrire cette clé       |
+| Modifier le DNS sécurisé Edge            | `BuiltInDnsClientEnabled`, `DnsOverHttpsMode`, `DnsOverHttpsTemplates` — section **Sécurité > Utiliser un DNS sécurisé** dans Edge — ne jamais écrire ces clés (choix utilisateur, impact réseau critique) |
 
 ---
 
