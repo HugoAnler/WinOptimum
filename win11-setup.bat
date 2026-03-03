@@ -43,7 +43,8 @@ echo [%date% %time%] Section 3 : Fichiers Panther supprimes >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 4 — Vérification espace disque + Pagefile fixe 6 Go
-:: Méthode registre native — INTERDIT d'utiliser WMI/wmic pagefileset
+:: Méthode registre native — wmic pagefileset/Set-WmiInstance INTERDITS (pas de token WMI write en FirstLogonCommands)
+:: wmic logicaldisk (lecture seule) utilisé en détection d'espace — silencieux si absent (fallback ligne 59)
 :: ═══════════════════════════════════════════════════════════
 set FREE=
 for /f "tokens=2 delims==" %%F in ('wmic logicaldisk where DeviceID^="C:" get FreeSpace /value 2^>nul') do set FREE=%%F
@@ -219,7 +220,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\
 
 :: Notifications toast désactivées
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v NoToastApplicationNotification /t REG_DWORD /d 1 /f >nul 2>&1
-:: Notifications toast — clé non-policy directe (effet immédiat sans redémarrage — prérequis ligne 270)
+:: Notifications toast — clé non-policy directe (effet immédiat sans redémarrage — complément HKLM policy ligne 248)
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 
 :: AutoPlay / AutoRun désactivés (sécurité USB)
@@ -244,7 +245,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v RestrictImpli
 :: Input Personalization — désactiver la personnalisation globale (complément Restrict*)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v AllowInputPersonalization /t REG_DWORD /d 0 /f >nul 2>&1
 
-:: Notifications toast — HKLM policy (system-wide, complément du HKCU ligne 170)
+:: Notifications toast — HKLM policy (system-wide, complément du HKCU lignes 221-223)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v NoToastApplicationNotification /t REG_DWORD /d 1 /f >nul 2>&1
 
 :: CloudContent — expériences personnalisées / Spotlight / SoftLanding
@@ -750,6 +751,8 @@ if "%NEED_WEBCAM%"=="0" (
 if exist "C:\Windows\Prefetch" (
   del /f /q "C:\Windows\Prefetch\*" >nul 2>&1
   echo [%date% %time%] Section 19 : Dossier Prefetch vide >> "%LOG%"
+) else (
+  echo [%date% %time%] Section 19 : Dossier Prefetch absent - rien a faire >> "%LOG%"
 )
 
 :: ═══════════════════════════════════════════════════════════
