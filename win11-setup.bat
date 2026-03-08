@@ -127,6 +127,10 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v LimitEnhanc
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v MicrosoftEdgeDataOptIn /t REG_DWORD /d 0 /f >nul 2>&1
 :: Software Protection Platform — empêche génération tickets de licence (réduit télémétrie licence)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\Software Protection Platform" /v NoGenTicket /t REG_DWORD /d 1 /f >nul 2>&1
+:: Experimentation et A/B testing Windows 25H2
+reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\System" /v AllowExperimentation /t REG_DWORD /d 0 /f >nul 2>&1
+:: OneSettings — empêche téléchargement config push Microsoft
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v DisableOneSettingsDownloads /t REG_DWORD /d 1 /f >nul 2>&1
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP/Defender/DataCollection OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -136,6 +140,10 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\DiagTrack-Listener
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\DiagLog" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\SQMLogger" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\WiFiSession" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
+:: CloudExperienceHostOobe — télémétrie OOBE cloud
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\CloudExperienceHostOobe" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
+:: NtfsLog — trace NTFS performance (inutile en production)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\NtfsLog" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 7 : AutoLoggers desactives >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -189,6 +197,21 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeWalletCheckoutEnabled /t 
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v MicrosoftEditorPromoEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v ShowMicrosoftRewards /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeWorkspacesEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+:: Edge — télémétrie diagnostique et préchargement réseau désactivés
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v DiagnosticData /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SendSiteInfoToImproveServices /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v NetworkPredictionOptions /t REG_DWORD /d 2 /f >nul 2>&1
+:: Edge — recommandations et nouvel onglet
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v ShowRecommendationsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v NewTabPageContentEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v NewTabPageQuickLinksEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+:: Edge — split screen et Bing sidebar désactivés (économie RAM)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SplitScreenEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v BingSidebarEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+:: Edge — mode efficacité + sleeping tabs (réduit RAM/CPU onglets inactifs)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EfficiencyModeEnabled /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SleepingTabsEnabled /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SleepingTabsTimeout /t REG_DWORD /d 300 /f >nul 2>&1
 echo [%date% %time%] Section 9 : Edge/GameDVR/DeliveryOptimization/Messaging OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -434,6 +457,15 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v HideRecentlyAdded
 :: Widgets — masquer le fil d'actualités (2=masqué — complément AllowNewsAndInterests=0)
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /t REG_DWORD /d 2 /f >nul 2>&1
 
+:: Animations barre des tâches désactivées (économie RAM/CPU)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAnimations /t REG_DWORD /d 0 /f >nul 2>&1
+:: Aero Peek désactivé (aperçu bureau en survol barre — économise RAM GPU)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\DWM" /v EnableAeroPeek /t REG_DWORD /d 0 /f >nul 2>&1
+:: Réduire le délai menu (réactivité perçue sans coût mémoire)
+reg add "HKCU\Control Panel\Desktop" /v MenuShowDelay /t REG_SZ /d 50 /f >nul 2>&1
+:: Désactiver cache miniatures (libère RAM explorateur)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v DisableThumbnailCache /t REG_DWORD /d 1 /f >nul 2>&1
+
 echo [%date% %time%] Section 12 : Interface OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -578,6 +610,17 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
   echo 0.0.0.0 edge-analytics.microsoft.com
   echo 0.0.0.0 analytics.live.com
   echo 0.0.0.0 dc.services.visualstudio.com
+  echo 0.0.0.0 nav.smartscreen.microsoft.com
+  echo 0.0.0.0 ris.api.iris.microsoft.com
+  echo 0.0.0.0 c.bing.com
+  echo 0.0.0.0 g.bing.com
+  echo 0.0.0.0 th.bing.com
+  echo 0.0.0.0 edgeassetservice.azureedge.net
+  echo 0.0.0.0 api.msn.com
+  echo 0.0.0.0 assets.msn.com
+  echo 0.0.0.0 ntp.msn.com
+  echo 0.0.0.0 web.vortex.data.microsoft.com
+  echo 0.0.0.0 watson.events.data.microsoft.com
 ) >> "%HOSTSFILE%" 2>nul
 
 :: Hosts Adobe — commentés par défaut (BLOCK_ADOBE=1 pour activer)
@@ -690,6 +733,14 @@ schtasks /Change /TN "\Microsoft\Windows\Recall\RecallMaintenanceTask" /Disable 
 schtasks /Change /TN "\Microsoft\Windows\WPN\PushNotificationCleanup" /Disable >nul 2>&1
 :: BITS cache maintenance
 schtasks /Change /TN "\Microsoft\Windows\BITS\CacheMaintenanceTask" /Disable >nul 2>&1
+:: Diagnostic recommandations scanner
+schtasks /Change /TN "\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner" /Disable >nul 2>&1
+:: Data Integrity Scan — rapport disque
+schtasks /Change /TN "\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan" /Disable >nul 2>&1
+:: SettingSync — synchronisation paramètres cloud
+schtasks /Change /TN "\Microsoft\Windows\SettingSync\BackgroundUploadTask" /Disable >nul 2>&1
+:: MUI Language Pack cleanup (CPU à chaque logon)
+schtasks /Change /TN "\Microsoft\Windows\MUI\LPRemove" /Disable >nul 2>&1
 echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
