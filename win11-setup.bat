@@ -14,6 +14,8 @@ set BLOCK_ADOBE=0      :: 0 = Adobe hosts commentés (par défaut), 1 = activer 
 set NEED_RDP=0         :: 0 = Microsoft.RemoteDesktop supprimé, 1 = conservé
 set NEED_WEBCAM=0      :: 0 = Microsoft.WindowsCamera supprimé, 1 = conservé
 set NEED_BT=0          :: 0 = BthAvctpSvc désactivé (casques BT audio peuvent échouer), 1 = conservé
+set NEED_PRINTER=0     :: 0 = Spooler désactivé (pas d'imprimante), 1 = conservé
+set SET_NEXTDNS=1      :: 1 = configurer NextDNS DoH (dns.nextdns.io/8459fd), 0 = ne pas toucher au DNS
 
 echo [%date% %time%] win11-setup.bat start >> "%LOG%"
 
@@ -149,6 +151,8 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v CortanaConsen
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v ConnectedSearchUseWeb /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudSearch /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowSearchToUseLocation /t REG_DWORD /d 0 /f >nul 2>&1
+:: Exclure Outlook de l'indexation (réduit I/O disque sur 1 Go RAM)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v PreventIndexingOutlook /t REG_DWORD /d 1 /f >nul 2>&1
 echo [%date% %time%] Section 8 : WindowsSearch policies OK (WSearch conserve) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -178,6 +182,13 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SmartScreenEnabled /t REG_DWO
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Messaging" /v AllowMessageSync /t REG_DWORD /d 0 /f >nul 2>&1
 :: GameDVR — désactiver les optimisations plein écran (réduit overhead GPU)
 reg add "HKCU\System\GameConfigStore" /v GameDVR_FSEBehavior /t REG_DWORD /d 2 /f >nul 2>&1
+:: Edge — fonctions inutiles consommatrices de ressources
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeCollectionsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeFollowEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeWalletCheckoutEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v MicrosoftEditorPromoEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v ShowMicrosoftRewards /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeWorkspacesEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 9 : Edge/GameDVR/DeliveryOptimization/Messaging OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -346,7 +357,18 @@ reg add "HKCU\SOFTWARE\Microsoft\Personalization\Settings" /v AcceptedPrivacyPol
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableThirdPartySuggestions /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailoredExperiencesWithDiagnosticData /t REG_DWORD /d 1 /f >nul 2>&1
 
-echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU OK >> "%LOG%"
+:: Tips & suggestions Windows — désactiver les popups "Discover" / "Get the most out of Windows"
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-338389Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-353694Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-353696Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement" /v ScoobeSystemSettingEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Réduire taille journaux événements (économie disque/mémoire sur 1 Go RAM — 1 Mo au lieu de 20 Mo)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\Application" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\System" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\Security" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
+
+echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU/Tips/EventLog OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 12 — Interface utilisateur (style Windows 10)
@@ -501,15 +523,20 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\WpcMonSvc" /v Start /t REG_DWORD
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\MixedRealityOpenXRSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\NaturalAuthentication" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\SmsRouter" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Défragmentation — service inutile si SSD (complément tâche ScheduledDefrag désactivée section 17)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\defragsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Spooler d'impression — conditionnel (consomme RAM en permanence)
+if "%NEED_PRINTER%"=="0" reg add "HKLM\SYSTEM\CurrentControlSet\Services\Spooler" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboot) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 15 — Arrêt immédiat des services listés
 :: ═══════════════════════════════════════════════════════════
-for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain Ndu FDResPub SSDPSRV upnphost Recall WindowsAIService WinMLService CoPilotMCPService cbdhsvc CDPUserSvc DevicesFlowUserSvc WpnService WpnUserService BcastDVRUserService DPS WdiSystemHost WdiServiceHost DusmSvc icssvc SEMgrSvc WpcMonSvc MixedRealityOpenXRSvc NaturalAuthentication SmsRouter diagnosticshub.standardcollector.service) do (
+for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain Ndu FDResPub SSDPSRV upnphost Recall WindowsAIService WinMLService CoPilotMCPService cbdhsvc CDPUserSvc DevicesFlowUserSvc WpnService WpnUserService BcastDVRUserService DPS WdiSystemHost WdiServiceHost DusmSvc icssvc SEMgrSvc WpcMonSvc MixedRealityOpenXRSvc NaturalAuthentication SmsRouter diagnosticshub.standardcollector.service defragsvc) do (
   sc stop %%S >nul 2>&1
 )
 if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
+if "%NEED_PRINTER%"=="0" sc stop Spooler >nul 2>&1
 echo [%date% %time%] Section 15 : sc stop envoye aux services listes >> "%LOG%"
 :: Paramètres de récupération DiagTrack — Ne rien faire sur toutes défaillances
 sc failure DiagTrack reset= 0 actions= none/0/none/0/none/0 >nul 2>&1
@@ -564,6 +591,29 @@ if "%BLOCK_ADOBE%"=="1" (
   echo [%date% %time%] Section 16 : Hosts OK (Adobe BLOQUE) >> "%LOG%"
 ) else (
   echo [%date% %time%] Section 16 : Hosts OK (Adobe commente par defaut) >> "%LOG%"
+)
+
+:: ═══════════════════════════════════════════════════════════
+:: SECTION 16b — DNS NextDNS DoH (système Windows, pas Edge)
+:: Configure DoH natif Windows 11 — ne bloque pas, définit simplement le résolveur
+:: NE TOUCHE PAS aux clés Edge (BuiltInDnsClientEnabled, DnsOverHttpsMode, DnsOverHttpsTemplates)
+:: ═══════════════════════════════════════════════════════════
+if "%SET_NEXTDNS%"=="1" (
+  :: Enregistrer les templates DoH pour les IPs NextDNS
+  netsh dns add encryption server=45.90.28.0 dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+  netsh dns add encryption server=45.90.30.0 dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+  netsh dns add encryption server=2a07:a8c0:: dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+  netsh dns add encryption server=2a07:a8c1:: dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+
+  :: Appliquer les serveurs DNS NextDNS sur toutes les interfaces réseau (Ethernet + Wi-Fi)
+  powershell -NoProfile -NonInteractive -Command "try { Get-NetAdapter -Physical -ErrorAction SilentlyContinue | ForEach-Object { Set-DnsClientServerAddress -InterfaceIndex $_.ifIndex -ServerAddresses @('45.90.28.0','45.90.30.0','2a07:a8c0::','2a07:a8c1::') -ErrorAction SilentlyContinue } } catch { }" >nul 2>&1
+
+  :: Activer DoH strict sur le service DNS client via registre
+  reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v EnableAutoDoh /t REG_DWORD /d 2 /f >nul 2>&1
+
+  echo [%date% %time%] Section 16b : NextDNS DoH configure ^(45.90.28.0/45.90.30.0 + IPv6^) >> "%LOG%"
+) else (
+  echo [%date% %time%] Section 16b : NextDNS ignore ^(SET_NEXTDNS=0^) >> "%LOG%"
 )
 
 :: ═══════════════════════════════════════════════════════════
@@ -634,6 +684,12 @@ schtasks /Change /TN "\Microsoft\Windows\AI\AIXSvcTaskMaintenance" /Disable >nul
 schtasks /Change /TN "\Microsoft\Windows\Copilot\CopilotDailyReport" /Disable >nul 2>&1
 schtasks /Change /TN "\Microsoft\Windows\Recall\IndexerRecoveryTask" /Disable >nul 2>&1
 schtasks /Change /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" /Disable >nul 2>&1
+:: Recall maintenance supplémentaire
+schtasks /Change /TN "\Microsoft\Windows\Recall\RecallMaintenanceTask" /Disable >nul 2>&1
+:: Windows Push Notifications cleanup
+schtasks /Change /TN "\Microsoft\Windows\WPN\PushNotificationCleanup" /Disable >nul 2>&1
+:: BITS cache maintenance
+schtasks /Change /TN "\Microsoft\Windows\BITS\CacheMaintenanceTask" /Disable >nul 2>&1
 echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
