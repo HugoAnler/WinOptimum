@@ -14,6 +14,8 @@ set BLOCK_ADOBE=0      :: 0 = Adobe hosts commentés (par défaut), 1 = activer 
 set NEED_RDP=0         :: 0 = Microsoft.RemoteDesktop supprimé, 1 = conservé
 set NEED_WEBCAM=0      :: 0 = Microsoft.WindowsCamera supprimé, 1 = conservé
 set NEED_BT=0          :: 0 = BthAvctpSvc désactivé (casques BT audio peuvent échouer), 1 = conservé
+set NEED_PRINTER=0     :: 0 = Spooler désactivé (pas d'imprimante), 1 = conservé
+set SET_NEXTDNS=1      :: 1 = configurer NextDNS DoH (dns.nextdns.io/8459fd), 0 = ne pas toucher au DNS
 
 echo [%date% %time%] win11-setup.bat start >> "%LOG%"
 
@@ -126,6 +128,10 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v LimitEnhanc
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v MicrosoftEdgeDataOptIn /t REG_DWORD /d 0 /f >nul 2>&1
 :: Software Protection Platform — empêche génération tickets de licence (réduit télémétrie licence)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\Software Protection Platform" /v NoGenTicket /t REG_DWORD /d 1 /f >nul 2>&1
+:: Experimentation et A/B testing Windows 25H2
+reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\System" /v AllowExperimentation /t REG_DWORD /d 0 /f >nul 2>&1
+:: OneSettings — empêche téléchargement config push Microsoft
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v DisableOneSettingsDownloads /t REG_DWORD /d 1 /f >nul 2>&1
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP/Defender/DataCollection OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -135,6 +141,10 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\DiagTrack-Listener
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\DiagLog" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\SQMLogger" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\WiFiSession" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
+:: CloudExperienceHostOobe — télémétrie OOBE cloud
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\CloudExperienceHostOobe" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
+:: NtfsLog — trace NTFS performance (inutile en production)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\NtfsLog" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 7 : AutoLoggers desactives >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -150,6 +160,8 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v CortanaConsen
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v ConnectedSearchUseWeb /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudSearch /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowSearchToUseLocation /t REG_DWORD /d 0 /f >nul 2>&1
+:: Exclure Outlook de l'indexation (réduit I/O disque sur 1 Go RAM)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v PreventIndexingOutlook /t REG_DWORD /d 1 /f >nul 2>&1
 echo [%date% %time%] Section 8 : WindowsSearch policies OK (WSearch conserve) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -179,6 +191,28 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SmartScreenEnabled /t REG_DWO
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Messaging" /v AllowMessageSync /t REG_DWORD /d 0 /f >nul 2>&1
 :: GameDVR — désactiver les optimisations plein écran (réduit overhead GPU)
 reg add "HKCU\System\GameConfigStore" /v GameDVR_FSEBehavior /t REG_DWORD /d 2 /f >nul 2>&1
+:: Edge — fonctions inutiles consommatrices de ressources
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeCollectionsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeFollowEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeWalletCheckoutEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v MicrosoftEditorPromoEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v ShowMicrosoftRewards /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeWorkspacesEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+:: Edge — télémétrie diagnostique et préchargement réseau désactivés
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v DiagnosticData /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SendSiteInfoToImproveServices /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v NetworkPredictionOptions /t REG_DWORD /d 2 /f >nul 2>&1
+:: Edge — recommandations et nouvel onglet
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v ShowRecommendationsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v NewTabPageContentEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v NewTabPageQuickLinksEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+:: Edge — split screen et Bing sidebar désactivés (économie RAM)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SplitScreenEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v BingSidebarEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+:: Edge — mode efficacité + sleeping tabs (réduit RAM/CPU onglets inactifs)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EfficiencyModeEnabled /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SleepingTabsEnabled /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SleepingTabsTimeout /t REG_DWORD /d 300 /f >nul 2>&1
 echo [%date% %time%] Section 9 : Edge/GameDVR/DeliveryOptimization/Messaging OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -347,7 +381,18 @@ reg add "HKCU\SOFTWARE\Microsoft\Personalization\Settings" /v AcceptedPrivacyPol
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableThirdPartySuggestions /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailoredExperiencesWithDiagnosticData /t REG_DWORD /d 1 /f >nul 2>&1
 
-echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU OK >> "%LOG%"
+:: Tips & suggestions Windows — désactiver les popups "Discover" / "Get the most out of Windows"
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-338389Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-353694Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-353696Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement" /v ScoobeSystemSettingEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Réduire taille journaux événements (économie disque/mémoire sur 1 Go RAM — 1 Mo au lieu de 20 Mo)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\Application" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\System" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\Security" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
+
+echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU/Tips/EventLog OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 12 — Interface utilisateur (style Windows 10)
@@ -412,6 +457,15 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v HideRecentlyAdded
 
 :: Widgets — masquer le fil d'actualités (2=masqué — complément AllowNewsAndInterests=0)
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /t REG_DWORD /d 2 /f >nul 2>&1
+
+:: Animations barre des tâches désactivées (économie RAM/CPU)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAnimations /t REG_DWORD /d 0 /f >nul 2>&1
+:: Aero Peek désactivé (aperçu bureau en survol barre — économise RAM GPU)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\DWM" /v EnableAeroPeek /t REG_DWORD /d 0 /f >nul 2>&1
+:: Réduire le délai menu (réactivité perçue sans coût mémoire)
+reg add "HKCU\Control Panel\Desktop" /v MenuShowDelay /t REG_SZ /d 50 /f >nul 2>&1
+:: Désactiver cache miniatures (libère RAM explorateur)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v DisableThumbnailCache /t REG_DWORD /d 1 /f >nul 2>&1
 
 echo [%date% %time%] Section 12 : Interface OK >> "%LOG%"
 
@@ -502,15 +556,20 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\WpcMonSvc" /v Start /t REG_DWORD
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\MixedRealityOpenXRSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\NaturalAuthentication" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\SmsRouter" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Défragmentation — service inutile si SSD (complément tâche ScheduledDefrag désactivée section 17)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\defragsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Spooler d'impression — conditionnel (consomme RAM en permanence)
+if "%NEED_PRINTER%"=="0" reg add "HKLM\SYSTEM\CurrentControlSet\Services\Spooler" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboot) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 15 — Arrêt immédiat des services listés
 :: ═══════════════════════════════════════════════════════════
-for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain Ndu FDResPub SSDPSRV upnphost Recall WindowsAIService WinMLService CoPilotMCPService cbdhsvc CDPUserSvc DevicesFlowUserSvc WpnService WpnUserService BcastDVRUserService DPS WdiSystemHost WdiServiceHost DusmSvc icssvc SEMgrSvc WpcMonSvc MixedRealityOpenXRSvc NaturalAuthentication SmsRouter diagnosticshub.standardcollector.service) do (
+for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain Ndu FDResPub SSDPSRV upnphost Recall WindowsAIService WinMLService CoPilotMCPService cbdhsvc CDPUserSvc DevicesFlowUserSvc WpnService WpnUserService BcastDVRUserService DPS WdiSystemHost WdiServiceHost DusmSvc icssvc SEMgrSvc WpcMonSvc MixedRealityOpenXRSvc NaturalAuthentication SmsRouter diagnosticshub.standardcollector.service defragsvc) do (
   sc stop %%S >nul 2>&1
 )
 if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
+if "%NEED_PRINTER%"=="0" sc stop Spooler >nul 2>&1
 echo [%date% %time%] Section 15 : sc stop envoye aux services listes >> "%LOG%"
 :: Paramètres de récupération DiagTrack — Ne rien faire sur toutes défaillances
 sc failure DiagTrack reset= 0 actions= none/0/none/0/none/0 >nul 2>&1
@@ -552,6 +611,17 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
   echo 0.0.0.0 edge-analytics.microsoft.com
   echo 0.0.0.0 analytics.live.com
   echo 0.0.0.0 dc.services.visualstudio.com
+  echo 0.0.0.0 nav.smartscreen.microsoft.com
+  echo 0.0.0.0 ris.api.iris.microsoft.com
+  echo 0.0.0.0 c.bing.com
+  echo 0.0.0.0 g.bing.com
+  echo 0.0.0.0 th.bing.com
+  echo 0.0.0.0 edgeassetservice.azureedge.net
+  echo 0.0.0.0 api.msn.com
+  echo 0.0.0.0 assets.msn.com
+  echo 0.0.0.0 ntp.msn.com
+  echo 0.0.0.0 web.vortex.data.microsoft.com
+  echo 0.0.0.0 watson.events.data.microsoft.com
 ) >> "%HOSTSFILE%" 2>nul
 
 :: Hosts Adobe — commentés par défaut (BLOCK_ADOBE=1 pour activer)
@@ -565,6 +635,29 @@ if "%BLOCK_ADOBE%"=="1" (
   echo [%date% %time%] Section 16 : Hosts OK (Adobe BLOQUE) >> "%LOG%"
 ) else (
   echo [%date% %time%] Section 16 : Hosts OK (Adobe commente par defaut) >> "%LOG%"
+)
+
+:: ═══════════════════════════════════════════════════════════
+:: SECTION 16b — DNS NextDNS DoH (système Windows, pas Edge)
+:: Configure DoH natif Windows 11 — ne bloque pas, définit simplement le résolveur
+:: NE TOUCHE PAS aux clés Edge (BuiltInDnsClientEnabled, DnsOverHttpsMode, DnsOverHttpsTemplates)
+:: ═══════════════════════════════════════════════════════════
+if "%SET_NEXTDNS%"=="1" (
+  :: Enregistrer les templates DoH pour les IPs NextDNS
+  netsh dns add encryption server=45.90.28.0 dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+  netsh dns add encryption server=45.90.30.0 dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+  netsh dns add encryption server=2a07:a8c0:: dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+  netsh dns add encryption server=2a07:a8c1:: dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+
+  :: Appliquer les serveurs DNS NextDNS sur toutes les interfaces réseau (Ethernet + Wi-Fi)
+  powershell -NoProfile -NonInteractive -Command "try { Get-NetAdapter -Physical -ErrorAction SilentlyContinue | ForEach-Object { Set-DnsClientServerAddress -InterfaceIndex $_.ifIndex -ServerAddresses @('45.90.28.0','45.90.30.0','2a07:a8c0::','2a07:a8c1::') -ErrorAction SilentlyContinue } } catch { }" >nul 2>&1
+
+  :: Activer DoH strict sur le service DNS client via registre
+  reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v EnableAutoDoh /t REG_DWORD /d 2 /f >nul 2>&1
+
+  echo [%date% %time%] Section 16b : NextDNS DoH configure ^(45.90.28.0/45.90.30.0 + IPv6^) >> "%LOG%"
+) else (
+  echo [%date% %time%] Section 16b : NextDNS ignore ^(SET_NEXTDNS=0^) >> "%LOG%"
 )
 
 :: ═══════════════════════════════════════════════════════════
@@ -635,6 +728,20 @@ schtasks /Change /TN "\Microsoft\Windows\AI\AIXSvcTaskMaintenance" /Disable >nul
 schtasks /Change /TN "\Microsoft\Windows\Copilot\CopilotDailyReport" /Disable >nul 2>&1
 schtasks /Change /TN "\Microsoft\Windows\Recall\IndexerRecoveryTask" /Disable >nul 2>&1
 schtasks /Change /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" /Disable >nul 2>&1
+:: Recall maintenance supplémentaire
+schtasks /Change /TN "\Microsoft\Windows\Recall\RecallMaintenanceTask" /Disable >nul 2>&1
+:: Windows Push Notifications cleanup
+schtasks /Change /TN "\Microsoft\Windows\WPN\PushNotificationCleanup" /Disable >nul 2>&1
+:: BITS cache maintenance
+schtasks /Change /TN "\Microsoft\Windows\BITS\CacheMaintenanceTask" /Disable >nul 2>&1
+:: Diagnostic recommandations scanner
+schtasks /Change /TN "\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner" /Disable >nul 2>&1
+:: Data Integrity Scan — rapport disque
+schtasks /Change /TN "\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan" /Disable >nul 2>&1
+:: SettingSync — synchronisation paramètres cloud
+schtasks /Change /TN "\Microsoft\Windows\SettingSync\BackgroundUploadTask" /Disable >nul 2>&1
+:: MUI Language Pack cleanup (CPU à chaque logon)
+schtasks /Change /TN "\Microsoft\Windows\MUI\LPRemove" /Disable >nul 2>&1
 echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
