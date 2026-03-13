@@ -515,13 +515,11 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\PhoneSvc" /v Start /t REG_DWORD 
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\WalletService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\AIXSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\CscService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\TabletInputService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\lltdsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\SensorDataService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\SensrSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\BingMapsGeocoder" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\PushToInstall" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\tiledatamodelsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\FontCache" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 :: NDU — collecte stats réseau — consomme RAM/CPU inutilement
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\Ndu" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
@@ -565,8 +563,8 @@ echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboo
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 15 — Arrêt immédiat des services listés
 :: ═══════════════════════════════════════════════════════════
-for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain Ndu FDResPub SSDPSRV upnphost Recall WindowsAIService WinMLService CoPilotMCPService cbdhsvc CDPUserSvc DevicesFlowUserSvc WpnService WpnUserService BcastDVRUserService DPS WdiSystemHost WdiServiceHost DusmSvc icssvc SEMgrSvc WpcMonSvc MixedRealityOpenXRSvc NaturalAuthentication SmsRouter diagnosticshub.standardcollector.service defragsvc) do (
-  sc stop %%S >nul 2>&1
+for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall FontCache SysMain Ndu FDResPub SSDPSRV upnphost Recall WindowsAIService WinMLService CoPilotMCPService cbdhsvc CDPUserSvc DevicesFlowUserSvc WpnService WpnUserService BcastDVRUserService DPS WdiSystemHost WdiServiceHost DusmSvc icssvc SEMgrSvc WpcMonSvc MixedRealityOpenXRSvc NaturalAuthentication SmsRouter diagnosticshub.standardcollector.service defragsvc) do (
+  sc query %%S >nul 2>&1 && sc stop %%S >nul 2>&1
 )
 if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
 if "%NEED_PRINTER%"=="0" sc stop Spooler >nul 2>&1
@@ -673,75 +671,75 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v DisablePCA /t RE
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v AITEnable /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 17a : AppCompat GPO registre OK >> "%LOG%"
 
-schtasks /Change /TN "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Application Experience\ProgramDataUpdater" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Application Experience\StartupAppTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Autochk\Proxy" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Feedback\Siuf\DmClient" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Maps\MapsToastTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Maps\MapsUpdateTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\NetTrace\GatherNetworkInfo" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Speech\SpeechModelDownloadTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Windows Error Reporting\QueueReporting" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\WindowsUpdate\Automatic App Update" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Defrag\ScheduledDefrag" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Diagnosis\Scheduled" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\ProgramDataUpdater" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\ProgramDataUpdater" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\StartupAppTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\StartupAppTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Autochk\Proxy" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Autochk\Proxy" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Feedback\Siuf\DmClient" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Feedback\Siuf\DmClient" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Maps\MapsToastTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Maps\MapsToastTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Maps\MapsUpdateTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Maps\MapsUpdateTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\NetTrace\GatherNetworkInfo" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\NetTrace\GatherNetworkInfo" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Speech\SpeechModelDownloadTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Speech\SpeechModelDownloadTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Windows Error Reporting\QueueReporting" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Windows Error Reporting\QueueReporting" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\WindowsUpdate\Automatic App Update" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WindowsUpdate\Automatic App Update" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\XblGameSave\XblGameSaveTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Defrag\ScheduledDefrag" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Defrag\ScheduledDefrag" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Diagnosis\Scheduled" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Diagnosis\Scheduled" /Disable >nul 2>&1
 :: Application Experience supplémentaires
-schtasks /Change /TN "\Microsoft\Windows\Application Experience\AitAgent" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Application Experience\PcaPatchDbTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\AitAgent" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\AitAgent" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\PcaPatchDbTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\PcaPatchDbTask" /Disable >nul 2>&1
 :: CEIP supplémentaires
-schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\BthSQM" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\Uploader" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Customer Experience Improvement Program\BthSQM" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\BthSQM" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Customer Experience Improvement Program\Uploader" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\Uploader" /Disable >nul 2>&1
 :: Device Information — collecte infos matériel envoyées à Microsoft
-schtasks /Change /TN "\Microsoft\Windows\Device Information\Device" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Device Information\Device User" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Device Information\Device" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Device Information\Device" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Device Information\Device User" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Device Information\Device User" /Disable >nul 2>&1
 :: DiskFootprint telemetry
-schtasks /Change /TN "\Microsoft\Windows\DiskFootprint\Diagnostics" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\DiskFootprint\Diagnostics" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\DiskFootprint\Diagnostics" /Disable >nul 2>&1
 :: Flighting / OneSettings — serveur push config Microsoft
-schtasks /Change /TN "\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Flighting\OneSettings\RefreshCache" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Flighting\OneSettings\RefreshCache" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Flighting\OneSettings\RefreshCache" /Disable >nul 2>&1
 :: WinSAT — benchmark envoyé à Microsoft
-schtasks /Change /TN "\Microsoft\Windows\Maintenance\WinSAT" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Maintenance\WinSAT" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Maintenance\WinSAT" /Disable >nul 2>&1
 :: SQM — Software Quality Metrics
-schtasks /Change /TN "\Microsoft\Windows\PI\Sqm-Tasks" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\PI\Sqm-Tasks" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\PI\Sqm-Tasks" /Disable >nul 2>&1
 :: UpdateOrchestrator — rapport policy télémétrie
-schtasks /Change /TN "\Microsoft\Windows\UpdateOrchestrator\Report policies" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\UpdateOrchestrator\Report policies" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\UpdateOrchestrator\Report policies" /Disable >nul 2>&1
 :: CloudExperienceHost — onboarding IA/OOBE
-schtasks /Change /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" /Disable >nul 2>&1
 :: Windows Store telemetry
-schtasks /Change /TN "\Microsoft\Windows\WS\WSTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\WS\WSTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WS\WSTask" /Disable >nul 2>&1
 :: Clipboard license validation
-schtasks /Change /TN "\Microsoft\Windows\Clip\License Validation" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Clip\License Validation" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Clip\License Validation" /Disable >nul 2>&1
 :: Xbox GameSave logon (complement de XblGameSaveTask deja desactive)
-schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTaskLogon" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\XblGameSave\XblGameSaveTaskLogon" >nul 2>&1 && schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTaskLogon" /Disable >nul 2>&1
 :: IA / Recall / Copilot 25H2
-schtasks /Change /TN "\Microsoft\Windows\AI\AIXSvcTaskMaintenance" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Copilot\CopilotDailyReport" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Recall\IndexerRecoveryTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\AI\AIXSvcTaskMaintenance" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\AI\AIXSvcTaskMaintenance" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Copilot\CopilotDailyReport" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Copilot\CopilotDailyReport" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Recall\IndexerRecoveryTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Recall\IndexerRecoveryTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" /Disable >nul 2>&1
 :: Recall maintenance supplémentaire
-schtasks /Change /TN "\Microsoft\Windows\Recall\RecallMaintenanceTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Recall\RecallMaintenanceTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Recall\RecallMaintenanceTask" /Disable >nul 2>&1
 :: Windows Push Notifications cleanup
-schtasks /Change /TN "\Microsoft\Windows\WPN\PushNotificationCleanup" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\WPN\PushNotificationCleanup" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WPN\PushNotificationCleanup" /Disable >nul 2>&1
 :: BITS cache maintenance
-schtasks /Change /TN "\Microsoft\Windows\BITS\CacheMaintenanceTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\BITS\CacheMaintenanceTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\BITS\CacheMaintenanceTask" /Disable >nul 2>&1
 :: Diagnostic recommandations scanner
-schtasks /Change /TN "\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner" /Disable >nul 2>&1
 :: Data Integrity Scan — rapport disque
-schtasks /Change /TN "\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan" /Disable >nul 2>&1
 :: SettingSync — synchronisation paramètres cloud
-schtasks /Change /TN "\Microsoft\Windows\SettingSync\BackgroundUploadTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\SettingSync\BackgroundUploadTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\SettingSync\BackgroundUploadTask" /Disable >nul 2>&1
 :: MUI Language Pack cleanup (CPU à chaque logon)
-schtasks /Change /TN "\Microsoft\Windows\MUI\LPRemove" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\MUI\LPRemove" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\MUI\LPRemove" /Disable >nul 2>&1
 echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
