@@ -746,111 +746,20 @@ echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 18 — Suppression applications Appx
-:: Liste "TOUJOURS supprimées" : exécution inconditionnelle
-:: NEED_RDP et NEED_WEBCAM contrôlent les 2 apps optionnelles
 :: Apps TOUJOURS conservées : Edge, Photos, OneDrive, Notepad, Terminal, DesktopAppInstaller, VCLibs, UI.Xaml, NET.Native
+:: Note : NEED_RDP et NEED_WEBCAM n'affectent plus la suppression des apps (incluses inconditionnellement)
 :: ═══════════════════════════════════════════════════════════
 
-:: Lot 1 — apps toujours supprimées (liste principale)
-powershell -NoProfile -NonInteractive -Command ^
-"try { ^
-  $apps = @( ^
-    '7EE7776C.LinkedInforWindows', ^
-    'Microsoft.LinkedIn', ^
-    'Facebook.Facebook', ^
-    'MSTeams', ^
-    'Microsoft.Teams', ^
-    'Microsoft.3DBuilder', ^
-    'Microsoft.3DViewer', ^
-    'Microsoft.549981C3F5F10', ^
-    'Microsoft.Advertising.Xaml', ^
-    'Microsoft.BingNews', ^
-    'Microsoft.BingWeather', ^
-    'Microsoft.BingSearch', ^
-    'Microsoft.Copilot', ^
-    'Microsoft.GetHelp', ^
-    'Microsoft.Getstarted', ^
-    'Microsoft.GamingApp', ^
-    'Microsoft.Messaging', ^
-    'Microsoft.MicrosoftOfficeHub', ^
-    'Microsoft.MicrosoftSolitaireCollection', ^
-    'Microsoft.MicrosoftStickyNotes', ^
-    'Microsoft.MixedReality.Portal', ^
-    'Microsoft.NetworkSpeedTest', ^
-    'Microsoft.News', ^
-    'Microsoft.Office.OneNote', ^
-    'Microsoft.Office.Sway', ^
-    'Microsoft.OneConnect', ^
-    'Microsoft.OutlookForWindows', ^
-    'Microsoft.People', ^
-    'Microsoft.PowerAutomateDesktop', ^
-    'Microsoft.Print3D', ^
-    'Microsoft.ScreenSketch', ^
-    'Microsoft.SkypeApp', ^
-    'Microsoft.Todos', ^
-    'Microsoft.Wallet', ^
-    'Microsoft.Whiteboard', ^
-    'Microsoft.WidgetsPlatformRuntime', ^
-    'Microsoft.WindowsAlarms', ^
-    'Microsoft.WindowsFeedbackHub', ^
-    'Microsoft.WindowsMaps', ^
-    'Microsoft.WindowsSoundRecorder', ^
-    'Microsoft.Windows.DevHome', ^
-    'Microsoft.Windows.NarratorQuickStart', ^
-    'Microsoft.Windows.ParentalControls', ^
-    'Microsoft.Windows.SecureAssessmentBrowser', ^
-    'Microsoft.XboxApp', ^
-    'Microsoft.Xbox.TCUI', ^
-    'Microsoft.XboxGameOverlay', ^
-    'Microsoft.XboxGamingOverlay', ^
-    'Microsoft.XboxIdentityProvider', ^
-    'Microsoft.XboxSpeechToTextOverlay', ^
-    'Microsoft.ZuneMusic', ^
-    'Microsoft.ZuneVideo', ^
-    'MicrosoftWindows.CrossDevice', ^
-    'MicrosoftCorporationII.QuickAssist', ^
-    'MicrosoftCorporationII.MicrosoftFamily', ^
-    'Netflix', ^
-    'SpotifyAB.SpotifyMusic', ^
-    'clipchamp.Clipchamp', ^
-    'MicrosoftCorporationII.PhoneLink', ^
-    'Microsoft.YourPhone', ^
-    'Microsoft.Windows.Ai.Copilot.Provider', ^
-    'Microsoft.WindowsRecall', ^
-    'Microsoft.RecallApp' ^
-  ); ^
-  foreach ($a in $apps) { ^
-    try { Get-AppxPackage -Name $a -AllUsers -ErrorAction SilentlyContinue | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue } } catch {} ^
-    try { $p = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.PackageName -like ('*' + $a + '*') }; if ($p) { $p | ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -ErrorAction SilentlyContinue } } } catch {} ^
-  } ^
-} catch { }" >nul 2>&1
-echo [%date% %time%] Section 18 Lot1 : Apps principales supprimees >> "%LOG%"
-
-:: Lot 2 — wildcards (king.com.*, *Recall*)
-powershell -NoProfile -NonInteractive -Command ^
-"try { ^
-  $wildcards = @('king.com', 'Windows.Recall'); ^
-  foreach ($w in $wildcards) { ^
-    try { Get-AppxPackage -Name ('*' + $w + '*') -AllUsers -ErrorAction SilentlyContinue | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue } } catch {} ^
-    try { $p = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.PackageName -like ('*' + $w + '*') }; if ($p) { $p | ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -ErrorAction SilentlyContinue } } } catch {} ^
-  } ^
-} catch { }" >nul 2>&1
-echo [%date% %time%] Section 18 Lot2 : Wildcards (king.com, Recall) OK >> "%LOG%"
-
-:: Apps conditionnelles
-if "%NEED_RDP%"=="0" (
-  powershell -NoProfile -NonInteractive -Command "try { Get-AppxPackage -Name 'Microsoft.RemoteDesktop' -AllUsers -ErrorAction SilentlyContinue | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue }; Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.PackageName -like '*RemoteDesktop*' } | ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -ErrorAction SilentlyContinue } } catch { }" >nul 2>&1
-  echo [%date% %time%] Section 18 : RemoteDesktop supprime (NEED_RDP=0) >> "%LOG%"
-) else (
-  echo [%date% %time%] Section 18 : RemoteDesktop conserve (NEED_RDP=1) >> "%LOG%"
+echo ========================================================================
+echo [0] Suppression des applications preinstallees et bloatwares...
+echo ========================================================================
+set "APPLIST=7EE7776C.LinkedInforWindows_3.0.42.0_x64__w1wdnht996qgy Facebook.Facebook MSTeams Microsoft.3DBuilder Microsoft.3DViewer Microsoft.549981C3F5F10 Microsoft.Advertising.Xaml Microsoft.BingNews Microsoft.BingWeather Microsoft.GetHelp Microsoft.Getstarted Microsoft.Messaging Microsoft.Microsoft3DViewer Microsoft.MicrosoftOfficeHub Microsoft.MicrosoftSolitaireCollection Microsoft.MixedReality.Portal Microsoft.NetworkSpeedTest Microsoft.News Microsoft.Office.OneNote Microsoft.Office.Sway Microsoft.OneConnect Microsoft.People Microsoft.Print3D Microsoft.RemoteDesktop Microsoft.SkypeApp Microsoft.Todos Microsoft.Wallet Microsoft.Whiteboard Microsoft.WindowsAlarms Microsoft.WindowsFeedbackHub Microsoft.WindowsMaps Microsoft.WindowsSoundRecorder Microsoft.XboxApp Microsoft.XboxGameOverlay Microsoft.XboxGamingOverlay Microsoft.XboxIdentityProvider Microsoft.XboxSpeechToTextOverlay Microsoft.ZuneMusic Microsoft.ZuneVideo Netflix SpotifyAB.SpotifyMusic king.com.* clipchamp.Clipchamp Microsoft.Copilot Microsoft.BingSearch Microsoft.Windows.DevHome Microsoft.PowerAutomateDesktop Microsoft.WindowsCamera 9WZDNCRFJ4Q7 Microsoft.OutlookForWindows MicrosoftCorporationII.QuickAssist Microsoft.MicrosoftStickyNotes Microsoft.BioEnrollment Microsoft.GamingApp Microsoft.WidgetsPlatformRuntime Microsoft.Windows.NarratorQuickStart Microsoft.Windows.ParentalControls Microsoft.Windows.SecureAssessmentBrowser Microsoft.WindowsCalculator MicrosoftWindows.CrossDevice Microsoft.LinkedIn Microsoft.Teams Microsoft.ScreenSketch Microsoft.Xbox.TCUI MicrosoftCorporationII.MicrosoftFamily MicrosoftCorporationII.PhoneLink Microsoft.YourPhone Microsoft.Windows.Ai.Copilot.Provider Microsoft.WindowsRecall Microsoft.RecallApp"
+for %%A in (%APPLIST%) do (
+    powershell -Command "Get-AppxPackage -AllUsers -Name %%A | Remove-AppxPackage -ErrorAction SilentlyContinue" >nul 2>&1
+    powershell -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq '%%A' } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue" >nul 2>&1
+    echo Suppression de %%A
 )
-
-if "%NEED_WEBCAM%"=="0" (
-  powershell -NoProfile -NonInteractive -Command "try { Get-AppxPackage -Name 'Microsoft.WindowsCamera' -AllUsers -ErrorAction SilentlyContinue | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue }; Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.PackageName -like '*Camera*' } | ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -ErrorAction SilentlyContinue } } catch { }" >nul 2>&1
-  echo [%date% %time%] Section 18 : WindowsCamera supprimee (NEED_WEBCAM=0) >> "%LOG%"
-) else (
-  echo [%date% %time%] Section 18 : WindowsCamera conservee (NEED_WEBCAM=1) >> "%LOG%"
-)
+echo [%date% %time%] Section 18 : Apps supprimees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 19 — Vider le dossier Prefetch
