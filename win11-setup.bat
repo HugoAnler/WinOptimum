@@ -14,6 +14,8 @@ set BLOCK_ADOBE=0      :: 0 = Adobe hosts commentés (par défaut), 1 = activer 
 set NEED_RDP=0         :: 0 = Microsoft.RemoteDesktop supprimé, 1 = conservé
 set NEED_WEBCAM=0      :: 0 = Microsoft.WindowsCamera supprimé, 1 = conservé
 set NEED_BT=0          :: 0 = BthAvctpSvc désactivé (casques BT audio peuvent échouer), 1 = conservé
+set NEED_PRINTER=0     :: 0 = Spooler désactivé (pas d'imprimante), 1 = conservé
+set SET_NEXTDNS=1      :: 1 = configurer NextDNS DoH (dns.nextdns.io/8459fd), 0 = ne pas toucher au DNS
 
 echo [%date% %time%] win11-setup.bat start >> "%LOG%"
 
@@ -43,7 +45,8 @@ echo [%date% %time%] Section 3 : Fichiers Panther supprimes >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 4 — Vérification espace disque + Pagefile fixe 6 Go
-:: Méthode registre native — INTERDIT d'utiliser WMI/wmic pagefileset
+:: Méthode registre native — wmic pagefileset/Set-WmiInstance INTERDITS (pas de token WMI write en FirstLogonCommands)
+:: wmic logicaldisk (lecture seule) utilisé en détection d'espace — silencieux si absent (fallback ligne 59)
 :: ═══════════════════════════════════════════════════════════
 set FREE=
 for /f "tokens=2 delims==" %%F in ('wmic logicaldisk where DeviceID^="C:" get FreeSpace /value 2^>nul') do set FREE=%%F
@@ -125,6 +128,10 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v LimitEnhanc
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v MicrosoftEdgeDataOptIn /t REG_DWORD /d 0 /f >nul 2>&1
 :: Software Protection Platform — empêche génération tickets de licence (réduit télémétrie licence)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\CurrentVersion\Software Protection Platform" /v NoGenTicket /t REG_DWORD /d 1 /f >nul 2>&1
+:: Experimentation et A/B testing Windows 25H2
+reg add "HKLM\SOFTWARE\Microsoft\PolicyManager\current\device\System" /v AllowExperimentation /t REG_DWORD /d 0 /f >nul 2>&1
+:: OneSettings — empêche téléchargement config push Microsoft
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v DisableOneSettingsDownloads /t REG_DWORD /d 1 /f >nul 2>&1
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP/Defender/DataCollection OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -134,6 +141,10 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\DiagTrack-Listener
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\DiagLog" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\SQMLogger" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\WiFiSession" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
+:: CloudExperienceHostOobe — télémétrie OOBE cloud
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\CloudExperienceHostOobe" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
+:: NtfsLog — trace NTFS performance (inutile en production)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\NtfsLog" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 7 : AutoLoggers desactives >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -149,36 +160,24 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" /v CortanaConsen
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v ConnectedSearchUseWeb /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudSearch /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowSearchToUseLocation /t REG_DWORD /d 0 /f >nul 2>&1
+:: Exclure Outlook de l'indexation (réduit I/O disque sur 1 Go RAM)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v PreventIndexingOutlook /t REG_DWORD /d 1 /f >nul 2>&1
 echo [%date% %time%] Section 8 : WindowsSearch policies OK (WSearch conserve) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
-:: SECTION 9 — Edge / GameDVR / Delivery Optimization
+:: SECTION 9 — GameDVR / Delivery Optimization / Messagerie
+:: NOTE : aucune clé HKLM\SOFTWARE\Policies\Microsoft\Edge intentionnellement
+::        — toute clé sous ce chemin affiche "géré par une organisation" dans Edge
 :: ═══════════════════════════════════════════════════════════
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v StartupBoostEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v BackgroundModeEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v AriaTelemetryEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v AppCaptureEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" /v GameDVR_Enabled /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR" /v AllowGameDVR /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization" /v DODownloadMode /t REG_DWORD /d 0 /f >nul 2>&1
-:: Edge — Copilot et fonctions IA désactivées
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v HubsSidebarEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeCopilotEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v CopilotPageContext /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeShoppingAssistantEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v PersonalizationReportingEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v EdgeEnhanceImagesEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SpotlightExperiencesAndRecommendationsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-:: Edge — pré-lancement désactivé (empêche Edge de se lancer avant toute demande)
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v AllowPrelaunch /t REG_DWORD /d 0 /f >nul 2>&1
-:: Edge — filtre phishing/SmartScreen envoie les URLs à Microsoft : désactivé
-reg add "HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\PhishingFilter" /v EnabledV9 /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v SmartScreenEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 :: Messagerie — synchronisation cloud désactivée
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Messaging" /v AllowMessageSync /t REG_DWORD /d 0 /f >nul 2>&1
 :: GameDVR — désactiver les optimisations plein écran (réduit overhead GPU)
 reg add "HKCU\System\GameConfigStore" /v GameDVR_FSEBehavior /t REG_DWORD /d 2 /f >nul 2>&1
-echo [%date% %time%] Section 9 : Edge/GameDVR/DeliveryOptimization/Messaging OK >> "%LOG%"
+echo [%date% %time%] Section 9 : GameDVR/DeliveryOptimization/Messaging OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 10 — Windows Update (non-destructif — wuauserv conservé)
@@ -219,7 +218,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\
 
 :: Notifications toast désactivées
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v NoToastApplicationNotification /t REG_DWORD /d 1 /f >nul 2>&1
-:: Notifications toast — clé non-policy directe (effet immédiat sans redémarrage — prérequis ligne 270)
+:: Notifications toast — clé non-policy directe (effet immédiat sans redémarrage — complément HKLM policy ligne 248)
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PushNotifications" /v ToastEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 
 :: AutoPlay / AutoRun désactivés (sécurité USB)
@@ -244,7 +243,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v RestrictImpli
 :: Input Personalization — désactiver la personnalisation globale (complément Restrict*)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\InputPersonalization" /v AllowInputPersonalization /t REG_DWORD /d 0 /f >nul 2>&1
 
-:: Notifications toast — HKLM policy (system-wide, complément du HKCU ligne 170)
+:: Notifications toast — HKLM policy (system-wide, complément du HKCU lignes 221-223)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotifications" /v NoToastApplicationNotification /t REG_DWORD /d 1 /f >nul 2>&1
 
 :: CloudContent — expériences personnalisées / Spotlight / SoftLanding
@@ -346,7 +345,18 @@ reg add "HKCU\SOFTWARE\Microsoft\Personalization\Settings" /v AcceptedPrivacyPol
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableThirdPartySuggestions /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailoredExperiencesWithDiagnosticData /t REG_DWORD /d 1 /f >nul 2>&1
 
-echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU OK >> "%LOG%"
+:: Tips & suggestions Windows — désactiver les popups "Discover" / "Get the most out of Windows"
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-338389Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-353694Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-353696Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement" /v ScoobeSystemSettingEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+
+:: Réduire taille journaux événements (économie disque/mémoire sur 1 Go RAM — 1 Mo au lieu de 20 Mo)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\Application" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\System" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\Security" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
+
+echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU/Tips/EventLog OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 12 — Interface utilisateur (style Windows 10)
@@ -412,6 +422,15 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v HideRecentlyAdded
 :: Widgets — masquer le fil d'actualités (2=masqué — complément AllowNewsAndInterests=0)
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /t REG_DWORD /d 2 /f >nul 2>&1
 
+:: Animations barre des tâches désactivées (économie RAM/CPU)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAnimations /t REG_DWORD /d 0 /f >nul 2>&1
+:: Aero Peek désactivé (aperçu bureau en survol barre — économise RAM GPU)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\DWM" /v EnableAeroPeek /t REG_DWORD /d 0 /f >nul 2>&1
+:: Réduire le délai menu (réactivité perçue sans coût mémoire)
+reg add "HKCU\Control Panel\Desktop" /v MenuShowDelay /t REG_SZ /d 50 /f >nul 2>&1
+:: Désactiver cache miniatures (libère RAM explorateur)
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v DisableThumbnailCache /t REG_DWORD /d 1 /f >nul 2>&1
+
 echo [%date% %time%] Section 12 : Interface OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -460,13 +479,11 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\PhoneSvc" /v Start /t REG_DWORD 
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\WalletService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\AIXSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\CscService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\TabletInputService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\lltdsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\SensorDataService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\SensrSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\BingMapsGeocoder" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\PushToInstall" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\tiledatamodelsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\FontCache" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 :: NDU — collecte stats réseau — consomme RAM/CPU inutilement
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\Ndu" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
@@ -501,15 +518,20 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\WpcMonSvc" /v Start /t REG_DWORD
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\MixedRealityOpenXRSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\NaturalAuthentication" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\SmsRouter" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Défragmentation — service inutile si SSD (complément tâche ScheduledDefrag désactivée section 17)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\defragsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Spooler d'impression — conditionnel (consomme RAM en permanence)
+if "%NEED_PRINTER%"=="0" reg add "HKLM\SYSTEM\CurrentControlSet\Services\Spooler" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboot) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 15 — Arrêt immédiat des services listés
 :: ═══════════════════════════════════════════════════════════
-for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService TabletInputService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall tiledatamodelsvc FontCache SysMain Ndu FDResPub SSDPSRV upnphost Recall WindowsAIService WinMLService CoPilotMCPService cbdhsvc CDPUserSvc DevicesFlowUserSvc WpnService WpnUserService BcastDVRUserService DPS WdiSystemHost WdiServiceHost DusmSvc icssvc SEMgrSvc WpcMonSvc MixedRealityOpenXRSvc NaturalAuthentication SmsRouter diagnosticshub.standardcollector.service) do (
-  sc stop %%S >nul 2>&1
+for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport NetTcpPortSharing RemoteAccess RemoteRegistry SharedAccess TrkWks WMPNetworkSvc XblAuthManager XblGameSave XboxNetApiSvc XboxGipSvc BDESVC wbengine Fax RetailDemo ScDeviceEnum SCardSvr AJRouter MessagingService SensorService PrintNotify wisvc lfsvc MapsBroker CDPSvc PhoneSvc WalletService AIXSvc CscService lltdsvc SensorDataService SensrSvc BingMapsGeocoder PushToInstall FontCache SysMain Ndu FDResPub SSDPSRV upnphost Recall WindowsAIService WinMLService CoPilotMCPService cbdhsvc CDPUserSvc DevicesFlowUserSvc WpnService WpnUserService BcastDVRUserService DPS WdiSystemHost WdiServiceHost DusmSvc icssvc SEMgrSvc WpcMonSvc MixedRealityOpenXRSvc NaturalAuthentication SmsRouter diagnosticshub.standardcollector.service defragsvc) do (
+  sc query %%S >nul 2>&1 && sc stop %%S >nul 2>&1
 )
 if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
+if "%NEED_PRINTER%"=="0" sc stop Spooler >nul 2>&1
 echo [%date% %time%] Section 15 : sc stop envoye aux services listes >> "%LOG%"
 :: Paramètres de récupération DiagTrack — Ne rien faire sur toutes défaillances
 sc failure DiagTrack reset= 0 actions= none/0/none/0/none/0 >nul 2>&1
@@ -551,6 +573,17 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
   echo 0.0.0.0 edge-analytics.microsoft.com
   echo 0.0.0.0 analytics.live.com
   echo 0.0.0.0 dc.services.visualstudio.com
+  echo 0.0.0.0 nav.smartscreen.microsoft.com
+  echo 0.0.0.0 ris.api.iris.microsoft.com
+  echo 0.0.0.0 c.bing.com
+  echo 0.0.0.0 g.bing.com
+  echo 0.0.0.0 th.bing.com
+  echo 0.0.0.0 edgeassetservice.azureedge.net
+  echo 0.0.0.0 api.msn.com
+  echo 0.0.0.0 assets.msn.com
+  echo 0.0.0.0 ntp.msn.com
+  echo 0.0.0.0 web.vortex.data.microsoft.com
+  echo 0.0.0.0 watson.events.data.microsoft.com
 ) >> "%HOSTSFILE%" 2>nul
 
 :: Hosts Adobe — commentés par défaut (BLOCK_ADOBE=1 pour activer)
@@ -567,6 +600,29 @@ if "%BLOCK_ADOBE%"=="1" (
 )
 
 :: ═══════════════════════════════════════════════════════════
+:: SECTION 16b — DNS NextDNS DoH (système Windows, pas Edge)
+:: Configure DoH natif Windows 11 — ne bloque pas, définit simplement le résolveur
+:: NE TOUCHE PAS aux clés Edge (BuiltInDnsClientEnabled, DnsOverHttpsMode, DnsOverHttpsTemplates)
+:: ═══════════════════════════════════════════════════════════
+if "%SET_NEXTDNS%"=="1" (
+  :: Enregistrer les templates DoH pour les IPs NextDNS
+  netsh dns add encryption server=45.90.28.0 dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+  netsh dns add encryption server=45.90.30.0 dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+  netsh dns add encryption server=2a07:a8c0:: dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+  netsh dns add encryption server=2a07:a8c1:: dohtemplate=https://dns.nextdns.io/8459fd autoupgrade=yes udpfallback=no >nul 2>&1
+
+  :: Appliquer les serveurs DNS NextDNS sur toutes les interfaces réseau (Ethernet + Wi-Fi)
+  powershell -NoProfile -NonInteractive -Command "try { Get-NetAdapter -Physical -ErrorAction SilentlyContinue | ForEach-Object { Set-DnsClientServerAddress -InterfaceIndex $_.ifIndex -ServerAddresses @('45.90.28.0','45.90.30.0','2a07:a8c0::','2a07:a8c1::') -ErrorAction SilentlyContinue } } catch { }" >nul 2>&1
+
+  :: Activer DoH strict sur le service DNS client via registre
+  reg add "HKLM\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters" /v EnableAutoDoh /t REG_DWORD /d 2 /f >nul 2>&1
+
+  echo [%date% %time%] Section 16b : NextDNS DoH configure ^(45.90.28.0/45.90.30.0 + IPv6^) >> "%LOG%"
+) else (
+  echo [%date% %time%] Section 16b : NextDNS ignore ^(SET_NEXTDNS=0^) >> "%LOG%"
+)
+
+:: ═══════════════════════════════════════════════════════════
 :: SECTION 17 — Tâches planifiées désactivées
 :: Bloc registre GPO en premier — empêche la réactivation automatique
 :: puis schtasks individuels (complément nécessaire — pas de clé registre directe)
@@ -579,170 +635,93 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v DisablePCA /t RE
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppCompat" /v AITEnable /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 17a : AppCompat GPO registre OK >> "%LOG%"
 
-schtasks /Change /TN "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Application Experience\ProgramDataUpdater" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Application Experience\StartupAppTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Autochk\Proxy" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Feedback\Siuf\DmClient" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Maps\MapsToastTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Maps\MapsUpdateTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\NetTrace\GatherNetworkInfo" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Speech\SpeechModelDownloadTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Windows Error Reporting\QueueReporting" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\WindowsUpdate\Automatic App Update" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Defrag\ScheduledDefrag" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Diagnosis\Scheduled" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\ProgramDataUpdater" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\ProgramDataUpdater" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\StartupAppTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\StartupAppTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Autochk\Proxy" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Autochk\Proxy" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Feedback\Siuf\DmClient" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Feedback\Siuf\DmClient" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Maps\MapsToastTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Maps\MapsToastTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Maps\MapsUpdateTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Maps\MapsUpdateTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\NetTrace\GatherNetworkInfo" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\NetTrace\GatherNetworkInfo" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Speech\SpeechModelDownloadTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Speech\SpeechModelDownloadTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Windows Error Reporting\QueueReporting" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Windows Error Reporting\QueueReporting" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\WindowsUpdate\Automatic App Update" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WindowsUpdate\Automatic App Update" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\XblGameSave\XblGameSaveTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Defrag\ScheduledDefrag" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Defrag\ScheduledDefrag" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Diagnosis\Scheduled" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Diagnosis\Scheduled" /Disable >nul 2>&1
 :: Application Experience supplémentaires
-schtasks /Change /TN "\Microsoft\Windows\Application Experience\AitAgent" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Application Experience\PcaPatchDbTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\AitAgent" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\AitAgent" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\PcaPatchDbTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\PcaPatchDbTask" /Disable >nul 2>&1
 :: CEIP supplémentaires
-schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\BthSQM" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\Uploader" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Customer Experience Improvement Program\BthSQM" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\BthSQM" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Customer Experience Improvement Program\Uploader" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Customer Experience Improvement Program\Uploader" /Disable >nul 2>&1
 :: Device Information — collecte infos matériel envoyées à Microsoft
-schtasks /Change /TN "\Microsoft\Windows\Device Information\Device" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Device Information\Device User" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Device Information\Device" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Device Information\Device" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Device Information\Device User" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Device Information\Device User" /Disable >nul 2>&1
 :: DiskFootprint telemetry
-schtasks /Change /TN "\Microsoft\Windows\DiskFootprint\Diagnostics" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\DiskFootprint\Diagnostics" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\DiskFootprint\Diagnostics" /Disable >nul 2>&1
 :: Flighting / OneSettings — serveur push config Microsoft
-schtasks /Change /TN "\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Flighting\OneSettings\RefreshCache" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Flighting\OneSettings\RefreshCache" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Flighting\OneSettings\RefreshCache" /Disable >nul 2>&1
 :: WinSAT — benchmark envoyé à Microsoft
-schtasks /Change /TN "\Microsoft\Windows\Maintenance\WinSAT" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Maintenance\WinSAT" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Maintenance\WinSAT" /Disable >nul 2>&1
 :: SQM — Software Quality Metrics
-schtasks /Change /TN "\Microsoft\Windows\PI\Sqm-Tasks" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\PI\Sqm-Tasks" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\PI\Sqm-Tasks" /Disable >nul 2>&1
 :: UpdateOrchestrator — rapport policy télémétrie
-schtasks /Change /TN "\Microsoft\Windows\UpdateOrchestrator\Report policies" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\UpdateOrchestrator\Report policies" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\UpdateOrchestrator\Report policies" /Disable >nul 2>&1
 :: CloudExperienceHost — onboarding IA/OOBE
-schtasks /Change /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" /Disable >nul 2>&1
 :: Windows Store telemetry
-schtasks /Change /TN "\Microsoft\Windows\WS\WSTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\WS\WSTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WS\WSTask" /Disable >nul 2>&1
 :: Clipboard license validation
-schtasks /Change /TN "\Microsoft\Windows\Clip\License Validation" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Clip\License Validation" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Clip\License Validation" /Disable >nul 2>&1
 :: Xbox GameSave logon (complement de XblGameSaveTask deja desactive)
-schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTaskLogon" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\XblGameSave\XblGameSaveTaskLogon" >nul 2>&1 && schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTaskLogon" /Disable >nul 2>&1
 :: IA / Recall / Copilot 25H2
-schtasks /Change /TN "\Microsoft\Windows\AI\AIXSvcTaskMaintenance" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Copilot\CopilotDailyReport" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Recall\IndexerRecoveryTask" /Disable >nul 2>&1
-schtasks /Change /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\AI\AIXSvcTaskMaintenance" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\AI\AIXSvcTaskMaintenance" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Copilot\CopilotDailyReport" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Copilot\CopilotDailyReport" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Recall\IndexerRecoveryTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Recall\IndexerRecoveryTask" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" /Disable >nul 2>&1
+:: Recall maintenance supplémentaire
+schtasks /Query /TN "\Microsoft\Windows\Recall\RecallMaintenanceTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Recall\RecallMaintenanceTask" /Disable >nul 2>&1
+:: Windows Push Notifications cleanup
+schtasks /Query /TN "\Microsoft\Windows\WPN\PushNotificationCleanup" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WPN\PushNotificationCleanup" /Disable >nul 2>&1
+:: BITS cache maintenance
+schtasks /Query /TN "\Microsoft\Windows\BITS\CacheMaintenanceTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\BITS\CacheMaintenanceTask" /Disable >nul 2>&1
+:: Diagnostic recommandations scanner
+schtasks /Query /TN "\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner" /Disable >nul 2>&1
+:: Data Integrity Scan — rapport disque
+schtasks /Query /TN "\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan" /Disable >nul 2>&1
+:: SettingSync — synchronisation paramètres cloud
+schtasks /Query /TN "\Microsoft\Windows\SettingSync\BackgroundUploadTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\SettingSync\BackgroundUploadTask" /Disable >nul 2>&1
+:: MUI Language Pack cleanup (CPU à chaque logon)
+schtasks /Query /TN "\Microsoft\Windows\MUI\LPRemove" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\MUI\LPRemove" /Disable >nul 2>&1
 echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 18 — Suppression applications Appx
-:: Liste "TOUJOURS supprimées" : exécution inconditionnelle
-:: NEED_RDP et NEED_WEBCAM contrôlent les 2 apps optionnelles
 :: Apps TOUJOURS conservées : Edge, Photos, OneDrive, Notepad, Terminal, DesktopAppInstaller, VCLibs, UI.Xaml, NET.Native
+:: Note : NEED_RDP et NEED_WEBCAM n'affectent plus la suppression des apps (incluses inconditionnellement)
 :: ═══════════════════════════════════════════════════════════
 
-:: Lot 1 — apps toujours supprimées (liste principale)
-powershell -NoProfile -NonInteractive -Command ^
-"try { ^
-  $apps = @( ^
-    '7EE7776C.LinkedInforWindows', ^
-    'Microsoft.LinkedIn', ^
-    'Facebook.Facebook', ^
-    'MSTeams', ^
-    'Microsoft.Teams', ^
-    'Microsoft.3DBuilder', ^
-    'Microsoft.3DViewer', ^
-    'Microsoft.549981C3F5F10', ^
-    'Microsoft.Advertising.Xaml', ^
-    'Microsoft.BingNews', ^
-    'Microsoft.BingWeather', ^
-    'Microsoft.BingSearch', ^
-    'Microsoft.Copilot', ^
-    'Microsoft.GetHelp', ^
-    'Microsoft.Getstarted', ^
-    'Microsoft.GamingApp', ^
-    'Microsoft.Messaging', ^
-    'Microsoft.MicrosoftOfficeHub', ^
-    'Microsoft.MicrosoftSolitaireCollection', ^
-    'Microsoft.MicrosoftStickyNotes', ^
-    'Microsoft.MixedReality.Portal', ^
-    'Microsoft.NetworkSpeedTest', ^
-    'Microsoft.News', ^
-    'Microsoft.Office.OneNote', ^
-    'Microsoft.Office.Sway', ^
-    'Microsoft.OneConnect', ^
-    'Microsoft.OutlookForWindows', ^
-    'Microsoft.People', ^
-    'Microsoft.PowerAutomateDesktop', ^
-    'Microsoft.Print3D', ^
-    'Microsoft.ScreenSketch', ^
-    'Microsoft.SkypeApp', ^
-    'Microsoft.Todos', ^
-    'Microsoft.Wallet', ^
-    'Microsoft.Whiteboard', ^
-    'Microsoft.WidgetsPlatformRuntime', ^
-    'Microsoft.WindowsAlarms', ^
-    'Microsoft.WindowsFeedbackHub', ^
-    'Microsoft.WindowsMaps', ^
-    'Microsoft.WindowsSoundRecorder', ^
-    'Microsoft.Windows.DevHome', ^
-    'Microsoft.Windows.NarratorQuickStart', ^
-    'Microsoft.Windows.ParentalControls', ^
-    'Microsoft.Windows.SecureAssessmentBrowser', ^
-    'Microsoft.XboxApp', ^
-    'Microsoft.Xbox.TCUI', ^
-    'Microsoft.XboxGameOverlay', ^
-    'Microsoft.XboxGamingOverlay', ^
-    'Microsoft.XboxIdentityProvider', ^
-    'Microsoft.XboxSpeechToTextOverlay', ^
-    'Microsoft.ZuneMusic', ^
-    'Microsoft.ZuneVideo', ^
-    'MicrosoftWindows.CrossDevice', ^
-    'MicrosoftCorporationII.QuickAssist', ^
-    'MicrosoftCorporationII.MicrosoftFamily', ^
-    'Netflix', ^
-    'SpotifyAB.SpotifyMusic', ^
-    'clipchamp.Clipchamp', ^
-    'MicrosoftCorporationII.PhoneLink', ^
-    'Microsoft.YourPhone', ^
-    'Microsoft.Windows.Ai.Copilot.Provider', ^
-    'Microsoft.WindowsRecall', ^
-    'Microsoft.RecallApp' ^
-  ); ^
-  foreach ($a in $apps) { ^
-    try { Get-AppxPackage -Name $a -AllUsers -ErrorAction SilentlyContinue | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue } } catch {} ^
-    try { $p = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.PackageName -like ('*' + $a + '*') }; if ($p) { $p | ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -ErrorAction SilentlyContinue } } } catch {} ^
-  } ^
-} catch { }" >nul 2>&1
-echo [%date% %time%] Section 18 Lot1 : Apps principales supprimees >> "%LOG%"
-
-:: Lot 2 — wildcards (king.com.*, *Recall*)
-powershell -NoProfile -NonInteractive -Command ^
-"try { ^
-  $wildcards = @('king.com', 'Windows.Recall'); ^
-  foreach ($w in $wildcards) { ^
-    try { Get-AppxPackage -Name ('*' + $w + '*') -AllUsers -ErrorAction SilentlyContinue | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue } } catch {} ^
-    try { $p = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.PackageName -like ('*' + $w + '*') }; if ($p) { $p | ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -ErrorAction SilentlyContinue } } } catch {} ^
-  } ^
-} catch { }" >nul 2>&1
-echo [%date% %time%] Section 18 Lot2 : Wildcards (king.com, Recall) OK >> "%LOG%"
-
-:: Apps conditionnelles
-if "%NEED_RDP%"=="0" (
-  powershell -NoProfile -NonInteractive -Command "try { Get-AppxPackage -Name 'Microsoft.RemoteDesktop' -AllUsers -ErrorAction SilentlyContinue | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue }; Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.PackageName -like '*RemoteDesktop*' } | ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -ErrorAction SilentlyContinue } } catch { }" >nul 2>&1
-  echo [%date% %time%] Section 18 : RemoteDesktop supprime (NEED_RDP=0) >> "%LOG%"
-) else (
-  echo [%date% %time%] Section 18 : RemoteDesktop conserve (NEED_RDP=1) >> "%LOG%"
+echo ========================================================================
+echo [0] Suppression des applications preinstallees et bloatwares...
+echo ========================================================================
+set "APPLIST=7EE7776C.LinkedInforWindows_3.0.42.0_x64__w1wdnht996qgy Facebook.Facebook MSTeams Microsoft.3DBuilder Microsoft.3DViewer Microsoft.549981C3F5F10 Microsoft.Advertising.Xaml Microsoft.BingNews Microsoft.BingWeather Microsoft.GetHelp Microsoft.Getstarted Microsoft.Messaging Microsoft.Microsoft3DViewer Microsoft.MicrosoftOfficeHub Microsoft.MicrosoftSolitaireCollection Microsoft.MixedReality.Portal Microsoft.NetworkSpeedTest Microsoft.News Microsoft.Office.OneNote Microsoft.Office.Sway Microsoft.OneConnect Microsoft.People Microsoft.Print3D Microsoft.RemoteDesktop Microsoft.SkypeApp Microsoft.Todos Microsoft.Wallet Microsoft.Whiteboard Microsoft.WindowsAlarms Microsoft.WindowsFeedbackHub Microsoft.WindowsMaps Microsoft.WindowsSoundRecorder Microsoft.XboxApp Microsoft.XboxGameOverlay Microsoft.XboxGamingOverlay Microsoft.XboxIdentityProvider Microsoft.XboxSpeechToTextOverlay Microsoft.ZuneMusic Microsoft.ZuneVideo Netflix SpotifyAB.SpotifyMusic king.com.* clipchamp.Clipchamp Microsoft.Copilot Microsoft.BingSearch Microsoft.Windows.DevHome Microsoft.PowerAutomateDesktop Microsoft.WindowsCamera 9WZDNCRFJ4Q7 Microsoft.OutlookForWindows MicrosoftCorporationII.QuickAssist Microsoft.MicrosoftStickyNotes Microsoft.BioEnrollment Microsoft.GamingApp Microsoft.WidgetsPlatformRuntime Microsoft.Windows.NarratorQuickStart Microsoft.Windows.ParentalControls Microsoft.Windows.SecureAssessmentBrowser Microsoft.WindowsCalculator MicrosoftWindows.CrossDevice Microsoft.LinkedIn Microsoft.Teams Microsoft.ScreenSketch Microsoft.Xbox.TCUI MicrosoftCorporationII.MicrosoftFamily MicrosoftCorporationII.PhoneLink Microsoft.YourPhone Microsoft.Windows.Ai.Copilot.Provider Microsoft.WindowsRecall Microsoft.RecallApp"
+for %%A in (%APPLIST%) do (
+    powershell -Command "Get-AppxPackage -AllUsers -Name %%A | Remove-AppxPackage -ErrorAction SilentlyContinue" >nul 2>&1
+    powershell -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq '%%A' } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue" >nul 2>&1
+    echo Suppression de %%A
 )
-
-if "%NEED_WEBCAM%"=="0" (
-  powershell -NoProfile -NonInteractive -Command "try { Get-AppxPackage -Name 'Microsoft.WindowsCamera' -AllUsers -ErrorAction SilentlyContinue | ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue }; Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue | Where-Object { $_.PackageName -like '*Camera*' } | ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -ErrorAction SilentlyContinue } } catch { }" >nul 2>&1
-  echo [%date% %time%] Section 18 : WindowsCamera supprimee (NEED_WEBCAM=0) >> "%LOG%"
-) else (
-  echo [%date% %time%] Section 18 : WindowsCamera conservee (NEED_WEBCAM=1) >> "%LOG%"
-)
+echo [%date% %time%] Section 18 : Apps supprimees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 19 — Vider le dossier Prefetch
@@ -750,6 +729,8 @@ if "%NEED_WEBCAM%"=="0" (
 if exist "C:\Windows\Prefetch" (
   del /f /q "C:\Windows\Prefetch\*" >nul 2>&1
   echo [%date% %time%] Section 19 : Dossier Prefetch vide >> "%LOG%"
+) else (
+  echo [%date% %time%] Section 19 : Dossier Prefetch absent - rien a faire >> "%LOG%"
 )
 
 :: ═══════════════════════════════════════════════════════════
