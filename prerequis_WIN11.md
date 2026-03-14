@@ -35,6 +35,7 @@ Ces apps ne doivent **jamais** être supprimées, peu importe le profil :
 | `MSTeams` / `Microsoft.Teams`              | Bloatware communication           |
 | `Microsoft.3DBuilder`                      | Inutile                           |
 | `Microsoft.3DViewer`                       | Inutile                           |
+| `Microsoft.Microsoft3DViewer`              | Inutile (alias nom 25H2)          |
 | `Microsoft.549981C3F5F10`                  | Cortana                           |
 | `Microsoft.Advertising.Xaml`              | Publicité Microsoft               |
 | `Microsoft.BingNews`                       | Actualités Bing                   |
@@ -59,7 +60,8 @@ Ces apps ne doivent **jamais** être supprimées, peu importe le profil :
 | `Microsoft.People`                         | Contacts                          |
 | `Microsoft.PowerAutomateDesktop`           | Automatisation                    |
 | `Microsoft.Print3D`                        | Impression 3D                     |
-| `Microsoft.RemoteDesktop` ⚠️              | Bureau à distance — OPTIONNEL     |
+| `Microsoft.BioEnrollment`                  | Enrôlement biométrique            |
+| `Microsoft.RemoteDesktop`                  | Bureau à distance                 |
 | `Microsoft.ScreenSketch`                   | Capture d'écran                   |
 | `Microsoft.SkypeApp`                       | Skype                             |
 | `Microsoft.Todos`                          | Todo list                         |
@@ -67,7 +69,8 @@ Ces apps ne doivent **jamais** être supprimées, peu importe le profil :
 | `Microsoft.Whiteboard`                     | Tableau blanc                     |
 | `Microsoft.WidgetsPlatformRuntime`         | Widgets                           |
 | `Microsoft.WindowsAlarms`                  | Alarmes                           |
-| `Microsoft.WindowsCamera` ⚠️              | Caméra — OPTIONNEL                |
+| `Microsoft.WindowsCamera`                  | Caméra                            |
+| `Microsoft.WindowsCalculator`              | Calculatrice Windows              |
 | `Microsoft.WindowsFeedbackHub`             | Feedback Microsoft                |
 | `Microsoft.WindowsMaps`                    | Cartes                            |
 | `Microsoft.WindowsSoundRecorder`           | Enregistreur audio                |
@@ -96,8 +99,7 @@ Ces apps ne doivent **jamais** être supprimées, peu importe le profil :
 | `clipchamp.Clipchamp`                      | Éditeur vidéo                     |
 | `king.com.*` (joker)                       | Jeux CandyCrush & co              |
 
-> ⚠️ `Microsoft.RemoteDesktop` : retirer de la liste si Bureau à distance nécessaire
-> ⚠️ `Microsoft.WindowsCamera` : retirer de la liste si webcam utilisée fréquemment
+> ⚠️ `Microsoft.RemoteDesktop` et `Microsoft.WindowsCamera` sont supprimés inconditionnellement dans la boucle APPLIST — `NEED_RDP` et `NEED_WEBCAM` n'affectent plus la suppression de ces apps (ils contrôlent uniquement `BthAvctpSvc` pour le Bluetooth).
 
 ---
 
@@ -155,13 +157,11 @@ Ces services ne doivent **jamais** être désactivés :
 | `WalletService`       | Portefeuille                                        |
 | `AIXSvc`              | Service IA — 25H2                                   |
 | `CscService`          | Fichiers hors connexion                             |
-| `TabletInputService`  | Saisie tactile/stylet — inutile sur PC de bureau    |
 | `lltdsvc`             | Découverte réseau Link-Layer — inutile              |
 | `SensorDataService`   | Données capteurs physiques — inutile sur PC fixe    |
 | `SensrSvc`            | Capteurs physiques — inutile sur PC fixe            |
 | `BingMapsGeocoder`    | Géocodage Bing — envoie des données de position     |
 | `PushToInstall`       | Microsoft pousse des apps à distance                |
-| `tiledatamodelsvc`    | Tuiles live menu démarrer — inutile                 |
 | `SysMain`             | Superfetch — désactivé inconditionnellement (1 Go RAM) |
 | `FontCache`           | Cache de polices — consomme RAM inutilement         |
 | `cbdhsvc`             | Cloud Clipboard — envoie le presse-papiers à Microsoft |
@@ -240,6 +240,13 @@ Ces services ne doivent **jamais** être désactivés :
 | `\Microsoft\Windows\Copilot\CopilotDailyReport`                                   | Rapport Copilot (25H2)        |
 | `\Microsoft\Windows\Recall\IndexerRecoveryTask`                                   | Recall indexer (25H2)         |
 | `\Microsoft\Windows\Recall\RecallScreenshotTask`                                  | Recall captures (25H2)        |
+| `\Microsoft\Windows\Recall\RecallMaintenanceTask`                                 | Recall maintenance (25H2)     |
+| `\Microsoft\Windows\WPN\PushNotificationCleanup`                                  | Nettoyage push notifications  |
+| `\Microsoft\Windows\BITS\CacheMaintenanceTask`                                    | Cache maintenance BITS        |
+| `\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner`                  | Scanner recommandations MS    |
+| `\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan`                      | Rapport intégrité disque      |
+| `\Microsoft\Windows\SettingSync\BackgroundUploadTask`                             | Sync paramètres cloud         |
+| `\Microsoft\Windows\MUI\LPRemove`                                                 | Cleanup packs langue (CPU logon) |
 
 ---
 
@@ -291,7 +298,6 @@ Ces services ne doivent **jamais** être désactivés :
 | Pagefile fixe **6 Go**                    | InitialSize=6144 MaximumSize=6144 (1 Go RAM)            |
 | Vérif espace disque avant pagefile        | Seuil minimum 10 Go libres                              |
 | Bloatware auto-install bloqué             | `DisableWindowsConsumerFeatures=1`                      |
-| Edge : StartupBoost et Background off     | `StartupBoostEnabled=0`, `BackgroundModeEnabled=0`      |
 | Géolocalisation désactivée               | `lfsvc` disabled + registre — toujours, sans demander    |
 | Localisation bloquée par app              | `CapabilityAccessManager` Deny — toutes les apps        |
 | WerFaultSecure.exe bloqué                 | `DontSendAdditionalData=1` + `LoggingDisabled=1`        |
@@ -335,10 +341,6 @@ Ces services ne doivent **jamais** être désactivés :
 | SIUF — période à zéro                     | HKCU `PeriodInNanoSeconds=0`                            |
 | Search HKCU Bing/Cortana désactivé        | `BingSearchEnabled=0` + `CortanaConsent=0` (per-user)   |
 | Windows Search — cloud désactivé          | `AllowCloudSearch=0` + `ConnectedSearchUseWeb=0`        |
-| Edge Copilot/sidebar désactivé            | `HubsSidebarEnabled=0` + `EdgeCopilotEnabled=0` + `CopilotPageContext=0` |
-| Edge pre-launch désactivé                 | `AllowPrelaunch=0`                                      |
-| Edge télémétrie Aria désactivée           | `AriaTelemetryEnabled=0`                                |
-| Edge shopping/IA/images personnalisés off | `EdgeShoppingAssistantEnabled=0` + `PersonalizationReportingEnabled=0` + `EdgeEnhanceImagesEnabled=0` + `SpotlightExperiencesAndRecommendationsEnabled=0` |
 | GameDVR — fullscreen optimizations off    | HKCU `GameDVR_FSEBehavior=2`                            |
 | Remote Assistance — contrôle total bloqué | `fAllowFullControl=0`                                   |
 | WER — pas d'UI                            | `DontShowUI=1`                                          |
@@ -408,6 +410,7 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | **Mettre des clés de registre dans `autounattend.xml`**  | **Le XML ne contient que le strict minimum setup — tout le registre est dans le .bat** |
 | Modifier `Win32PrioritySeparation`       | Valeur Windows par défaut conservée — ne jamais écrire cette clé       |
 | Modifier le DNS sécurisé Edge            | `BuiltInDnsClientEnabled`, `DnsOverHttpsMode`, `DnsOverHttpsTemplates` — section **Sécurité > Utiliser un DNS sécurisé** dans Edge — ne jamais écrire ces clés (choix utilisateur, impact réseau critique) |
+| Écrire toute clé sous `HKLM\SOFTWARE\Policies\Microsoft\Edge` | La seule présence de ce chemin affiche **"géré par une organisation"** dans Edge — interdit sans exception. Inclut aussi `HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\*` |
 
 ---
 
@@ -511,11 +514,22 @@ schtasks /Change /TN "\Microsoft\Windows\Application Experience\Microsoft Compat
 
 **✅ For loop autorisée uniquement pour les noms courts sans espaces**
 ```bat
-:: OK — noms de services sans espaces
+:: OK — noms de services sans espaces, avec vérification d'existence obligatoire
 for %%S in (DiagTrack XblAuthManager XboxNetApiSvc) do (
-    sc stop %%S >nul 2>&1
-    sc config %%S start= disabled >nul 2>&1
+    sc query %%S >nul 2>&1 && sc stop %%S >nul 2>&1
 )
+```
+
+**✅ `schtasks /Disable` toujours précédé d'un `schtasks /Query`**
+
+Sans vérification d'existence, `schtasks /Change /Disable` produit "Le chemin de tâche spécifié est introuvable" pour toute tâche absente (tâches 25H2 sur anciens builds, tâches optionnelles non installées).
+
+```bat
+:: ❌ FAUX — erreur si la tâche est absente
+schtasks /Change /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" /Disable >nul 2>&1
+
+:: ✅ CORRECT — ignoré proprement si la tâche n'existe pas
+schtasks /Query /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" /Disable >nul 2>&1
 ```
 
 **❌ Jamais de doublons dans les listes de services**
