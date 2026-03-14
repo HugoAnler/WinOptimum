@@ -1,4 +1,4 @@
-# Optiwindows Windows
+# Optimisation Windows
 
 > Script de post-installation Windows 11 25H2 — optimisé pour systèmes à faibles ressources (1 Go de RAM)
 
