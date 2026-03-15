@@ -349,7 +349,7 @@ Ces services ne doivent **jamais** être désactivés :
 | NCSI — stop probes msftconnecttest.com    | `NoActiveProbe=1`                                       |
 | Wi-Fi Sense — auto-connect désactivé      | `AutoConnectAllowedOEM=0`                               |
 | InputPersonalization — contacts           | HKCU `HarvestContacts=0`                                |
-| ContentDeliveryManager — bloque réinstall | `SilentInstalledAppsEnabled=0` + `ContentDeliveryAllowed=0` + SubscribedContent-* |
+| ContentDeliveryManager — bloque réinstall | `SilentInstalledAppsEnabled=0` + `ContentDeliveryAllowed=0` + SubscribedContent-338387/388/389/**393**/310093/353694/696/698 |
 | AppPrivacy — blocage global sensors/data  | `LetAppsAccessCamera/Microphone/Location/...=2` (14 permissions) |
 | Lock Screen — caméra et diaporama off     | `NoLockScreenCamera=1` + `NoLockScreenSlideshow=1`      |
 | Écriture manuscrite — partage off         | `PreventHandwritingDataSharing=1`                       |
