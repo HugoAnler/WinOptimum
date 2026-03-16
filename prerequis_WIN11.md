@@ -1,8 +1,6 @@
 # Prérequis & Contraintes Obligatoires — Windows 11 Setup
 
-> ⚠️ Ce fichier définit les règles **non-négociables** à respecter dans chaque
-> génération de fichiers. Il doit être lu en premier à chaque usage de la skill.
->
+> ⚠️ Ce fichier définit les règles **non-négociables** à respecter dans le script. Il doit être lu en premier à chaque usage de la skill.
 > **Cible active : Windows 11 25H2 — 1 Go RAM — TPM 2.0 natif — sans bypass**
 
 ---
