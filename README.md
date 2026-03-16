@@ -1,12 +1,12 @@
 # Optimisation Windows
 
-> Script de post-installation Windows 11 25H2 — optimisé pour systèmes à faibles ressources (1 Go de RAM)
+> Script de post-installation Windows 11 25H2 — optimisé pour systèmes à faibles ressources
 
 ---
 
 ## Description
 
-**WinOptimum** est un toolkit de debloat et d'optimisation de Windows 11 25H2 conçu pour les machines à ressources limitées (minimum 1 Go de RAM). Il supprime les applications inutiles, désactive la télémétrie, optimise la mémoire et applique plus de 70 réglages registre — tout en conservant la sécurité et les fonctionnalités essentielles de Windows.
+**WinOptimum** est un toolkit de debloat et d'optimisation de Windows 11 25H2 conçu pour les machines à ressources limitées. Il supprime les applications inutiles, désactive la télémétrie, optimise la mémoire et applique plus de 70 réglages registre — tout en conservant la sécurité et les fonctionnalités essentielles de Windows.
 
 Le script est pensé pour un **déploiement non assisté** : il s'intègre dans un fichier `autounattend.xml` via la section `FirstLogonCommands`, et s'exécute automatiquement au premier démarrage après installation. Il peut également être lancé manuellement en tant qu'administrateur sur un Windows déjà installé.
 
