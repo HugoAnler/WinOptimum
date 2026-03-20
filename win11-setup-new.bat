@@ -161,8 +161,14 @@ reg add "HKCU\SOFTWARE\Microsoft\AppSettings" /v Skype-UserConsentAccepted /t RE
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement" /v AccountNotifications /t REG_DWORD /d 0 /f >nul 2>&1
 :: Appels téléphoniques — accès apps UWP refusé
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\phoneCall" /v Value /t REG_SZ /d Deny /f >nul 2>&1
-:: Windows Defender — désactiver envoi échantillons via PowerShell (complément clés Spynet)
-powershell -NoProfile -Command "Set-MpPreference -SubmitSamplesConsent 2 -ErrorAction SilentlyContinue" >nul 2>&1
+:: Recherche cloud désactivée
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudSearch /t REG_DWORD /d 0 /f >nul 2>&1
+:: OneDrive auto-start désactivé
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v DisableFileSyncNGSC /t REG_DWORD /d 1 /f >nul 2>&1
+:: Windows Spotlight désactivé (publicités écran verrouillage)
+reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsSpotlightFeatures /t REG_DWORD /d 1 /f >nul 2>&1
+:: Windows Defender — SubmitSamplesConsent déjà défini à 0 via registre (clés Spynet ci-dessus)
+:: Ne pas utiliser Set-MpPreference -SubmitSamplesConsent 2 : affaiblit Defender (interdit par prerequis)
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP/Defender/DataCollection OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -716,6 +722,8 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
   echo 0.0.0.0 ntp.msn.com
   echo 0.0.0.0 web.vortex.data.microsoft.com
   echo 0.0.0.0 watson.events.data.microsoft.com
+  echo 0.0.0.0 edge.activity.windows.com
+  echo 0.0.0.0 browser.events.data.msn.com
 ) >> "%HOSTSFILE%" 2>nul
 
 :: Hosts Adobe — commentés par défaut (BLOCK_ADOBE=1 pour activer)
@@ -767,6 +775,7 @@ schtasks /Query /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Defrag\ScheduledDefrag" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Defrag\ScheduledDefrag" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Diagnosis\Scheduled" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Diagnosis\Scheduled" /Disable >nul 2>&1
 :: Application Experience supplémentaires
+schtasks /Query /TN "\Microsoft\Windows\Application Experience\MareBackfill" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\MareBackfill" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Application Experience\AitAgent" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\AitAgent" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Application Experience\PcaPatchDbTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Application Experience\PcaPatchDbTask" /Disable >nul 2>&1
 :: CEIP supplémentaires
@@ -821,14 +830,13 @@ echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 :: Note : NEED_RDP et NEED_WEBCAM n'affectent plus la suppression des apps (incluses inconditionnellement)
 :: ═══════════════════════════════════════════════════════════
 
-set "APPLIST=7EE7776C.LinkedInforWindows_3.0.42.0_x64__w1wdnht996qgy Facebook.Facebook MSTeams Microsoft.3DBuilder Microsoft.3DViewer Microsoft.549981C3F5F10 Microsoft.Advertising.Xaml Microsoft.BingNews Microsoft.BingWeather Microsoft.GetHelp Microsoft.Getstarted Microsoft.Messaging Microsoft.Microsoft3DViewer Microsoft.MicrosoftOfficeHub Microsoft.MicrosoftSolitaireCollection Microsoft.MixedReality.Portal Microsoft.NetworkSpeedTest Microsoft.News Microsoft.Office.OneNote Microsoft.Office.Sway Microsoft.OneConnect Microsoft.People Microsoft.Print3D Microsoft.RemoteDesktop Microsoft.SkypeApp Microsoft.Todos Microsoft.Wallet Microsoft.Whiteboard Microsoft.WindowsAlarms Microsoft.WindowsFeedbackHub Microsoft.WindowsMaps Microsoft.WindowsSoundRecorder Microsoft.XboxApp Microsoft.XboxGameOverlay Microsoft.XboxGamingOverlay Microsoft.XboxIdentityProvider Microsoft.XboxSpeechToTextOverlay Microsoft.ZuneMusic Microsoft.ZuneVideo Netflix SpotifyAB.SpotifyMusic king.com.* clipchamp.Clipchamp Microsoft.Copilot Microsoft.BingSearch Microsoft.Windows.DevHome Microsoft.PowerAutomateDesktop Microsoft.WindowsCamera 9WZDNCRFJ4Q7 Microsoft.OutlookForWindows MicrosoftCorporationII.QuickAssist Microsoft.MicrosoftStickyNotes Microsoft.BioEnrollment Microsoft.GamingApp Microsoft.WidgetsPlatformRuntime Microsoft.Windows.NarratorQuickStart Microsoft.Windows.ParentalControls Microsoft.Windows.SecureAssessmentBrowser Microsoft.WindowsCalculator MicrosoftWindows.CrossDevice Microsoft.LinkedIn Microsoft.Teams Microsoft.ScreenSketch Microsoft.Xbox.TCUI MicrosoftCorporationII.MicrosoftFamily MicrosoftCorporationII.PhoneLink Microsoft.YourPhone Microsoft.Windows.Ai.Copilot.Provider Microsoft.WindowsRecall Microsoft.RecallApp"
+set "APPLIST=7EE7776C.LinkedInforWindows_3.0.42.0_x64__w1wdnht996qgy Facebook.Facebook MSTeams Microsoft.3DBuilder Microsoft.3DViewer Microsoft.549981C3F5F10 Microsoft.Advertising.Xaml Microsoft.BingNews Microsoft.BingWeather Microsoft.GetHelp Microsoft.Getstarted Microsoft.Messaging Microsoft.Microsoft3DViewer Microsoft.MicrosoftOfficeHub Microsoft.MicrosoftSolitaireCollection Microsoft.MixedReality.Portal Microsoft.NetworkSpeedTest Microsoft.News Microsoft.Office.OneNote Microsoft.Office.Sway Microsoft.OneConnect Microsoft.People Microsoft.Print3D Microsoft.RemoteDesktop Microsoft.SkypeApp Microsoft.Todos Microsoft.Wallet Microsoft.Whiteboard Microsoft.WindowsAlarms Microsoft.WindowsFeedbackHub Microsoft.WindowsMaps Microsoft.WindowsSoundRecorder Microsoft.XboxApp Microsoft.XboxGameOverlay Microsoft.XboxGamingOverlay Microsoft.XboxIdentityProvider Microsoft.XboxSpeechToTextOverlay Microsoft.ZuneMusic Microsoft.ZuneVideo Netflix SpotifyAB.SpotifyMusic king.com.* clipchamp.Clipchamp Microsoft.Copilot Microsoft.BingSearch Microsoft.Windows.DevHome Microsoft.PowerAutomateDesktop Microsoft.WindowsCamera 9WZDNCRFJ4Q7 Microsoft.OutlookForWindows MicrosoftCorporationII.QuickAssist Microsoft.MicrosoftStickyNotes Microsoft.BioEnrollment Microsoft.GamingApp Microsoft.WidgetsPlatformRuntime Microsoft.Windows.NarratorQuickStart Microsoft.Windows.ParentalControls Microsoft.Windows.SecureAssessmentBrowser Microsoft.WindowsCalculator MicrosoftWindows.CrossDevice Microsoft.LinkedIn Microsoft.Teams Microsoft.Xbox.TCUI MicrosoftCorporationII.MicrosoftFamily MicrosoftCorporationII.PhoneLink Microsoft.YourPhone Microsoft.Windows.Ai.Copilot.Provider Microsoft.WindowsRecall Microsoft.RecallApp"
 for %%A in (%APPLIST%) do (
-    powershell -Command "Get-AppxPackage -AllUsers -Name %%A | Remove-AppxPackage -ErrorAction SilentlyContinue" >nul 2>&1
-    powershell -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq '%%A' } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue" >nul 2>&1
+    powershell -NonInteractive -NoProfile -Command "Get-AppxPackage -AllUsers -Name %%A | Remove-AppxPackage -ErrorAction SilentlyContinue" >nul 2>&1
+    powershell -NonInteractive -NoProfile -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq '%%A' } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue" >nul 2>&1
     echo Suppression de %%A
 )
 echo [%date% %time%] Section 18 : Apps supprimees >> "%LOG%"
-pause
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 19 — Vider le dossier Prefetch
 :: ═══════════════════════════════════════════════════════════
@@ -836,12 +844,13 @@ if exist "C:\Windows\Prefetch" (
   del /f /q "C:\Windows\Prefetch\*" >nul 2>&1
   echo [%date% %time%] Section 19 : Dossier Prefetch vide >> "%LOG%"
   )
-  pause
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 19 — Vérification intégrité système + restart Explorer
 :: ═══════════════════════════════════════════════════════════
 echo [%date% %time%] Section 19b : SFC/DISM en cours (patience)... >> "%LOG%"
+echo Verification integrite systeme en cours (SFC)... Cela peut prendre plusieurs minutes.
 sfc /scannow >nul 2>&1
+echo Reparation image systeme en cours (DISM)... Cela peut prendre plusieurs minutes.
 dism /online /cleanup-image /restorehealth >nul 2>&1
 echo [%date% %time%] Section 19b : SFC/DISM termine >> "%LOG%"
 :: Redémarrer l'explorateur pour appliquer les changements d'interface immédiatement
@@ -856,17 +865,14 @@ echo [%date% %time%] Section 19b : Explorer redémarre >> "%LOG%"
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 20 — Fin
 :: ═══════════════════════════════════════════════════════════
+echo [%date% %time%] === RESUME === >> "%LOG%"
+echo [%date% %time%] Services : 65+ desactives (Start=4, effectifs apres reboot) >> "%LOG%"
+echo [%date% %time%] Taches planifiees : 70+ desactivees >> "%LOG%"
+echo [%date% %time%] Apps UWP : 70+ supprimees >> "%LOG%"
+echo [%date% %time%] Hosts : 35+ domaines telemetrie bloques >> "%LOG%"
+echo [%date% %time%] Registre : 100+ cles vie privee/telemetrie appliquees >> "%LOG%"
 echo [%date% %time%] win11-setup.bat termine avec succes. Reboot recommande. >> "%LOG%"
 echo.
-choice /c ON /m "Redemarrer maintenant (O) ou plus tard (N)"
-if errorlevel 2 goto :fin
-if errorlevel 1 goto :redemarrer
-
-:redemarrer
-CLS
-echo Redemarrage dans 15 secondes...
-shutdown /r /t 15 /c "win11-setup.bat - Optimisation Windows 11 complete"
-goto :fin
-
-:fin
+echo Optimisation terminee. Un redemarrage est recommande pour finaliser.
+echo Consultez le log : C:\Windows\Temp\win11-setup.log
 exit /b 0

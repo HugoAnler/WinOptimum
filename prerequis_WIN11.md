@@ -20,6 +20,7 @@ Ces apps ne doivent **jamais** être supprimées, peu importe le profil :
 | `Microsoft.VCLibs.*`             | Dépendance runtime critique   |
 | `Microsoft.UI.Xaml.*`            | Dépendance runtime critique   |
 | `Microsoft.NET.Native.*`         | Dépendance runtime critique   |
+| `Microsoft.ScreenSketch`         | Capture d'écran Win+Shift+S   |
 
 ---
 
@@ -60,7 +61,7 @@ Ces apps ne doivent **jamais** être supprimées, peu importe le profil :
 | `Microsoft.Print3D`                        | Impression 3D                     |
 | `Microsoft.BioEnrollment`                  | Enrôlement biométrique            |
 | `Microsoft.RemoteDesktop`                  | Bureau à distance                 |
-| `Microsoft.ScreenSketch`                   | Capture d'écran                   |
+
 | `Microsoft.SkypeApp`                       | Skype                             |
 | `Microsoft.Todos`                          | Todo list                         |
 | `Microsoft.Wallet`                         | Portefeuille                      |
@@ -218,6 +219,7 @@ Ces services ne doivent **jamais** être désactivés :
 | `\Microsoft\Windows\Shell\FamilySafetyRefreshTask`                                | Contrôle parental             |
 | `\Microsoft\Windows\Defrag\ScheduledDefrag`                                       | Défragmentation automatique   |
 | `\Microsoft\Windows\Diagnosis\Scheduled`                                          | Diagnostic automatique        |
+| `\Microsoft\Windows\Application Experience\MareBackfill`                          | Télémétrie compatibilité 25H2 |
 | `\Microsoft\Windows\Application Experience\AitAgent`                              | Application Impact Telemetry  |
 | `\Microsoft\Windows\Application Experience\PcaPatchDbTask`                        | Patching DB compatibilité     |
 | `\Microsoft\Windows\Customer Experience Improvement Program\BthSQM`               | CEIP Bluetooth                |
@@ -273,6 +275,8 @@ Ces services ne doivent **jamais** être désactivés :
 | `eu-mobile.events.data.microsoft.com` | Pipeline Aria télémétrie (EU) |
 | `us-mobile.events.data.microsoft.com` | Pipeline Aria télémétrie (US) |
 | `mobile.events.data.microsoft.com`  | Pipeline Aria télémétrie      |
+| `edge.activity.windows.com`         | Historique activité Edge      |
+| `browser.events.data.msn.com`       | Télémétrie Edge/MSN           |
 
 > Adobe (commenté par défaut — activer si pas de logiciel Adobe) :
 > `lmlicenses.wip4.adobe.com`, `lm.licenses.adobe.com`, `practivate.adobe.com`, `activate.adobe.com`
@@ -338,7 +342,9 @@ Ces services ne doivent **jamais** être désactivés :
 | IA Windows 25H2 — master switch           | `EnableWindowsAI=0` + `AllowOnDeviceML=0` + `DisableWinMLFeatures=1` |
 | SIUF — période à zéro                     | HKCU `PeriodInNanoSeconds=0`                            |
 | Search HKCU Bing/Cortana désactivé        | `BingSearchEnabled=0` + `CortanaConsent=0` (per-user)   |
-| Windows Search — cloud désactivé          | `AllowCloudSearch=0` + `ConnectedSearchUseWeb=0`        |
+| Windows Search — cloud désactivé          | `AllowCloudSearch=0` + `ConnectedSearchUseWeb=0` + HKLM Policy |
+| OneDrive auto-start désactivé             | `DisableFileSyncNGSC=1` (HKLM Policy OneDrive)         |
+| Windows Spotlight désactivé               | `DisableWindowsSpotlightFeatures=1` (HKCU Policy — pubs écran verrouillage) |
 | GameDVR — fullscreen optimizations off    | HKCU `GameDVR_FSEBehavior=2`                            |
 | Remote Assistance — contrôle total bloqué | `fAllowFullControl=0`                                   |
 | WER — pas d'UI                            | `DontShowUI=1`                                          |
