@@ -161,8 +161,8 @@ reg add "HKCU\SOFTWARE\Microsoft\AppSettings" /v Skype-UserConsentAccepted /t RE
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement" /v AccountNotifications /t REG_DWORD /d 0 /f >nul 2>&1
 :: Appels téléphoniques — accès apps UWP refusé
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\phoneCall" /v Value /t REG_SZ /d Deny /f >nul 2>&1
-:: Windows Defender — désactiver envoi échantillons via PowerShell (complément clés Spynet)
-powershell -NoProfile -Command "Set-MpPreference -SubmitSamplesConsent 2 -ErrorAction SilentlyContinue" >nul 2>&1
+:: Windows Defender — SubmitSamplesConsent déjà défini à 0 via registre (clés Spynet ci-dessus)
+:: Ne pas utiliser Set-MpPreference -SubmitSamplesConsent 2 : affaiblit Defender (interdit par prerequis)
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP/Defender/DataCollection OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -823,12 +823,11 @@ echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 set "APPLIST=7EE7776C.LinkedInforWindows_3.0.42.0_x64__w1wdnht996qgy Facebook.Facebook MSTeams Microsoft.3DBuilder Microsoft.3DViewer Microsoft.549981C3F5F10 Microsoft.Advertising.Xaml Microsoft.BingNews Microsoft.BingWeather Microsoft.GetHelp Microsoft.Getstarted Microsoft.Messaging Microsoft.Microsoft3DViewer Microsoft.MicrosoftOfficeHub Microsoft.MicrosoftSolitaireCollection Microsoft.MixedReality.Portal Microsoft.NetworkSpeedTest Microsoft.News Microsoft.Office.OneNote Microsoft.Office.Sway Microsoft.OneConnect Microsoft.People Microsoft.Print3D Microsoft.RemoteDesktop Microsoft.SkypeApp Microsoft.Todos Microsoft.Wallet Microsoft.Whiteboard Microsoft.WindowsAlarms Microsoft.WindowsFeedbackHub Microsoft.WindowsMaps Microsoft.WindowsSoundRecorder Microsoft.XboxApp Microsoft.XboxGameOverlay Microsoft.XboxGamingOverlay Microsoft.XboxIdentityProvider Microsoft.XboxSpeechToTextOverlay Microsoft.ZuneMusic Microsoft.ZuneVideo Netflix SpotifyAB.SpotifyMusic king.com.* clipchamp.Clipchamp Microsoft.Copilot Microsoft.BingSearch Microsoft.Windows.DevHome Microsoft.PowerAutomateDesktop Microsoft.WindowsCamera 9WZDNCRFJ4Q7 Microsoft.OutlookForWindows MicrosoftCorporationII.QuickAssist Microsoft.MicrosoftStickyNotes Microsoft.BioEnrollment Microsoft.GamingApp Microsoft.WidgetsPlatformRuntime Microsoft.Windows.NarratorQuickStart Microsoft.Windows.ParentalControls Microsoft.Windows.SecureAssessmentBrowser Microsoft.WindowsCalculator MicrosoftWindows.CrossDevice Microsoft.LinkedIn Microsoft.Teams Microsoft.ScreenSketch Microsoft.Xbox.TCUI MicrosoftCorporationII.MicrosoftFamily MicrosoftCorporationII.PhoneLink Microsoft.YourPhone Microsoft.Windows.Ai.Copilot.Provider Microsoft.WindowsRecall Microsoft.RecallApp"
 for %%A in (%APPLIST%) do (
-    powershell -Command "Get-AppxPackage -AllUsers -Name %%A | Remove-AppxPackage -ErrorAction SilentlyContinue" >nul 2>&1
-    powershell -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq '%%A' } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue" >nul 2>&1
+    powershell -NonInteractive -NoProfile -Command "Get-AppxPackage -AllUsers -Name %%A | Remove-AppxPackage -ErrorAction SilentlyContinue" >nul 2>&1
+    powershell -NonInteractive -NoProfile -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq '%%A' } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue" >nul 2>&1
     echo Suppression de %%A
 )
 echo [%date% %time%] Section 18 : Apps supprimees >> "%LOG%"
-pause
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 19 — Vider le dossier Prefetch
 :: ═══════════════════════════════════════════════════════════
@@ -836,7 +835,6 @@ if exist "C:\Windows\Prefetch" (
   del /f /q "C:\Windows\Prefetch\*" >nul 2>&1
   echo [%date% %time%] Section 19 : Dossier Prefetch vide >> "%LOG%"
   )
-  pause
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 19 — Vérification intégrité système + restart Explorer
 :: ═══════════════════════════════════════════════════════════
@@ -858,15 +856,5 @@ echo [%date% %time%] Section 19b : Explorer redémarre >> "%LOG%"
 :: ═══════════════════════════════════════════════════════════
 echo [%date% %time%] win11-setup.bat termine avec succes. Reboot recommande. >> "%LOG%"
 echo.
-choice /c ON /m "Redemarrer maintenant (O) ou plus tard (N)"
-if errorlevel 2 goto :fin
-if errorlevel 1 goto :redemarrer
-
-:redemarrer
-CLS
-echo Redemarrage dans 15 secondes...
-shutdown /r /t 15 /c "win11-setup.bat - Optimisation Windows 11 complete"
-goto :fin
-
-:fin
+echo Optimisation terminee. Un redemarrage est recommande pour finaliser.
 exit /b 0
