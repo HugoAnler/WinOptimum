@@ -6,11 +6,11 @@
 
 ## Description
 
-**WinOptimum** est un toolkit de debloat et d'optimisation de Windows 11 25H2 conçu pour les machines à ressources limitées. Il supprime les applications inutiles, désactive la télémétrie, optimise la mémoire et applique plus de 70 réglages registre — tout en conservant la sécurité et les fonctionnalités essentielles de Windows.
+**WinOptimum** est un toolkit de debloat et d'optimisation de Windows 11 25H2 conçu pour les machines à ressources limitées (1 Go RAM). Il supprime les applications inutiles, désactive la télémétrie, bloque Copilot/Recall/IA 25H2, optimise la mémoire et applique plus de 100 réglages registre — tout en conservant la sécurité et les fonctionnalités essentielles de Windows.
 
 Le script est pensé pour un **déploiement non assisté** : il s'intègre dans un fichier `autounattend.xml` via la section `FirstLogonCommands`, et s'exécute automatiquement au premier démarrage après installation. Il peut également être lancé manuellement en tant qu'administrateur sur un Windows déjà installé.
 
-Toutes les actions sont journalisées dans `C:\Windows\Temp\win11-setup.log`.
+Toutes les actions sont journalisées dans `C:\Windows\Temp\win11-setup.log`. Un résumé d'exécution est écrit en fin de log.
 
 ---
 
@@ -35,24 +35,27 @@ Le script est organisé en **20 sections** qui s'exécutent séquentiellement :
 |---|---|
 | 1 | Vérification des droits administrateur — arrêt immédiat si non admin |
 | 2 | Création d'un point de restauration système (obligatoire avant toute modification) |
-| 3 | Suppression des fichiers Panther (`C:\Windows\Panther`) — sécurité : ces fichiers contiennent le mot de passe administrateur en clair |
-| 4 | Pagefile fixe à 6 Go sur C: (uniquement si ≥ 10 Go d'espace libre détecté via WMIC) |
+| 3 | Suppression des fichiers Panther (`C:\Windows\Panther`) — sécurité : mot de passe admin en clair (25H2) |
+| 4 | Pagefile fixe à 6 Go sur C: (uniquement si ≥ 10 Go d'espace libre) |
 | 5 | Optimisation mémoire : compression activée, Prefetch désactivé, SysMain arrêté, opt-out télémétrie PowerShell |
-| 6 | Zéro télémétrie : 16+ clés registre pour désactiver Copilot, Recall, DiagTrack, IA générative et la collecte de données Microsoft |
+| 6 | Zéro télémétrie : 20+ clés registre — Copilot, Recall, DiagTrack, IA 25H2, Spotlight, Cloud Search, collecte Microsoft |
 | 7 | AutoLoggers désactivés : DiagTrack, DiagLog, SQMLogger, WiFiSession |
-| 8 | Windows Search : désactivation de la recherche web et Bing dans la barre de recherche (le service WSearch reste actif) |
-| 9 | Optimisations Edge (désactivation du démarrage anticipé et du mode arrière-plan), GameDVR désactivé, Delivery Optimization désactivé |
-| 10 | Politiques Windows Update : redémarrage rapide après mises à jour, réseau mesuré autorisé, notifications conservées |
-| 11 | Vie privée & sécurité : Cortana désactivé, ID publicitaire supprimé, historique d'activité désactivé, géolocalisation désactivée, RemoteAssistance désactivé, personnalisation de la saisie désactivée, AutoPlay désactivé, contenu cloud désactivé, cartes hors ligne bloquées, mise à jour du modèle vocal bloquée |
-| 12 | Interface style Windows 10 : barre des tâches alignée à gauche, widgets supprimés, boutons Teams/Copilot masqués, menu contextuel classique, "Ce PC" par défaut dans l'explorateur, Galerie et Réseau masqués, son de démarrage désactivé, hibernation désactivée, démarrage rapide désactivé |
-| 13 | Priorité CPU : `SystemResponsiveness = 10` (les applications au premier plan obtiennent la priorité) |
-| 14 | 39+ services désactivés via registre (`Start=4`) |
-| 15 | Arrêt immédiat de tous les services désactivés à la section 14 |
-| 16 | Fichier `hosts` : 12 domaines de télémétrie Microsoft bloqués en `0.0.0.0` |
-| 17 | 19 tâches planifiées de diagnostic et de collecte de données désactivées |
-| 18 | Suppression de 50+ applications bloatware (UWP) via PowerShell |
+| 8 | Windows Search : désactivation de la recherche web et Bing (le service WSearch reste actif) |
+| 9 | Edge (démarrage anticipé, arrière-plan), GameDVR désactivé, Delivery Optimization désactivé |
+| 10 | Politiques Windows Update : redémarrage rapide, réseau mesuré autorisé, notifications conservées |
+| 11 | Vie privée & sécurité : Cortana, ID publicitaire, historique d'activité, géolocalisation, RemoteAssistance, saisie, AutoPlay, contenu cloud, cartes hors ligne, modèle vocal |
+| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy |
+| 12 | Interface Win10 : barre à gauche, widgets supprimés, Teams/Copilot masqués, menu contextuel classique, "Ce PC" par défaut, Galerie/Réseau masqués, son démarrage off, hibernation off, Fast Startup off |
+| 13 | Priorité CPU : `SystemResponsiveness = 10` |
+| 14 | 65+ services désactivés via registre (`Start=4`) |
+| 15 | Arrêt immédiat des services désactivés + `sc failure DiagTrack` |
+| 16 | Fichier `hosts` : 35+ domaines de télémétrie bloqués en `0.0.0.0` (+ bloc Adobe optionnel) |
+| 17a | GPO AppCompat : `DisableUAR`, `DisableInventory`, `DisablePCA`, `AITEnable=0` |
+| 17 | 48+ tâches planifiées désactivées (télémétrie, CEIP, Recall, Copilot, Xbox, IA 25H2) |
+| 18 | Suppression de 70+ applications bloatware (UWP) via PowerShell |
 | 19 | Nettoyage du dossier `C:\Windows\Prefetch` |
-| 20 | Fin du script avec log de succès |
+| 19b | Vérification intégrité système (SFC/DISM) + restart Explorer |
+| 20 | Résumé d'exécution dans le log + fin du script |
 
 ---
 
@@ -67,9 +70,8 @@ Le script ne touche jamais aux éléments suivants, considérés comme essentiel
 - Notepad (Bloc-notes)
 - Terminal Windows
 - DesktopAppInstaller (winget)
-- VCLibs
-- UI.Xaml
-- NET.Native
+- ScreenSketch (capture d'écran Win+Shift+S)
+- VCLibs, UI.Xaml, NET.Native (runtimes)
 
 **Services toujours actifs :**
 - `WSearch` — Windows Search (indexation)
@@ -93,7 +95,7 @@ Quatre variables sont disponibles en tête du script pour adapter le comportemen
 | `NEED_WEBCAM` | `0` | `1` = conserver WindowsCamera (sinon supprimée) |
 | `NEED_BT` | `0` | `1` = conserver le service Bluetooth audio `BthAvctpSvc` (sinon désactivé) |
 
-Pour modifier une option, ouvrir `win11-setup.bat` et changer la valeur correspondante dans la section de configuration en tête de fichier.
+Pour modifier une option, ouvrir `win11-setup-new.bat` et changer la valeur correspondante dans la section de configuration en tête de fichier.
 
 ---
 
@@ -114,13 +116,13 @@ Intégrer le script dans un fichier `autounattend.xml` via la section `oobeSyste
 </FirstLogonCommands>
 ```
 
-Copier `win11-setup.bat` sur la clé USB d'installation et référencer son chemin dans la commande ci-dessus.
+Copier `win11-setup-new.bat` sur la clé USB d'installation et référencer son chemin dans la commande ci-dessus.
 
 ### Mode 2 — Exécution manuelle
 
 Sur un Windows 11 déjà installé :
 
-1. Faire un clic droit sur `win11-setup.bat`
+1. Faire un clic droit sur `win11-setup-new.bat`
 2. Sélectionner **"Exécuter en tant qu'administrateur"**
 3. Le script s'exécute silencieusement (aucune invite, aucun redémarrage automatique)
 4. Consulter le log à la fin : `C:\Windows\Temp\win11-setup.log`
@@ -131,11 +133,11 @@ Sur un Windows 11 déjà installé :
 
 | Catégorie | Quantité |
 |---|---|
-| Clés registre modifiées | 70+ |
-| Services désactivés | 39 |
-| Tâches planifiées désactivées | 19 |
-| Applications (UWP) supprimées | 50+ |
-| Domaines de télémétrie bloqués | 12 |
+| Clés registre modifiées | 100+ |
+| Services désactivés | 65+ |
+| Tâches planifiées désactivées | 48+ |
+| Applications (UWP) supprimées | 70+ |
+| Domaines de télémétrie bloqués | 35+ |
 | Options de configuration | 4 |
 
 ---
@@ -144,8 +146,9 @@ Sur un Windows 11 déjà installé :
 
 | Fichier | Description |
 |---|---|
-| `win11-setup.bat` | Script principal d'optimisation post-installation (525 lignes) |
-| `prerequis_WIN11.md` | Document de spécification : règles de conception, listes d'apps/services/tâches, contraintes techniques (554 lignes) |
+| `win11-setup-new.bat` | Script principal d'optimisation post-installation (~880 lignes) |
+| `prerequis_WIN11.md` | Document de spécification : règles de conception, listes d'apps/services/tâches, contraintes techniques |
+| `CLAUDE.md` | Instructions pour Claude Code — structure du script, règles absolues, conventions |
 
 ---
 
@@ -155,4 +158,5 @@ Sur un Windows 11 déjà installé :
 - **Test en VM** : tester sur une machine virtuelle avant tout déploiement en production.
 - **Options conditionnelles** : si vous avez besoin de Bureau à distance, d'une webcam ou du Bluetooth audio, ajuster les variables `NEED_RDP`, `NEED_WEBCAM`, `NEED_BT` avant l'exécution.
 - **Contexte FirstLogonCommands** : certaines limitations WMI et PowerShell s'appliquent dans ce contexte d'exécution — le script est conçu pour les contourner proprement.
-- **Windows Defender conservé** : aucune modification de la sécurité antivirus n'est effectuée (SubmitSamplesConsent intentionnellement non modifié).
+- **Windows Defender conservé** : aucune modification de la sécurité antivirus n'est effectuée (`SubmitSamplesConsent` jamais à 2).
+- **Vérification intégrité** : SFC et DISM sont exécutés en fin de script pour vérifier l'intégrité du système après les modifications.
