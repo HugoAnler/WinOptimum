@@ -33,7 +33,7 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 - **DNS sécurisé Edge jamais modifié** : `BuiltInDnsClientEnabled`, `DnsOverHttpsMode`, `DnsOverHttpsTemplates` — choix utilisateur
 - **Pas de doublons dans la liste de services** : erreur silencieuse dans la boucle `for`
 
-## Structure de `win11-setup.bat`
+## Structure de `win11-setup-new.bat`
 
 20 sections séquentielles — ordre imposé :
 
