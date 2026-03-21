@@ -95,7 +95,7 @@ Quatre variables sont disponibles en tête du script pour adapter le comportemen
 | `NEED_WEBCAM` | `0` | `1` = conserver WindowsCamera (sinon supprimée) |
 | `NEED_BT` | `0` | `1` = conserver le service Bluetooth audio `BthAvctpSvc` (sinon désactivé) |
 
-Pour modifier une option, ouvrir `win11-setup-new.bat` et changer la valeur correspondante dans la section de configuration en tête de fichier.
+Pour modifier une option, ouvrir `win11-setup.bat` et changer la valeur correspondante dans la section de configuration en tête de fichier.
 
 ---
 
@@ -109,20 +109,20 @@ Intégrer le script dans un fichier `autounattend.xml` via la section `oobeSyste
 <FirstLogonCommands>
   <SynchronousCommand wcm:action="add">
     <Order>1</Order>
-    <CommandLine>cmd /c "D:\win11-setup-new.bat"</CommandLine>
+    <CommandLine>cmd /c "D:\win11-setup.bat"</CommandLine>
     <Description>Optimisation Windows 11</Description>
     <RequiresUserInput>false</RequiresUserInput>
   </SynchronousCommand>
 </FirstLogonCommands>
 ```
 
-Copier `win11-setup-new.bat` sur la clé USB d'installation et référencer son chemin dans la commande ci-dessus.
+Copier `win11-setup.bat` sur la clé USB d'installation et référencer son chemin dans la commande ci-dessus.
 
 ### Mode 2 — Exécution manuelle
 
 Sur un Windows 11 déjà installé :
 
-1. Faire un clic droit sur `win11-setup-new.bat`
+1. Faire un clic droit sur `win11-setup.bat`
 2. Sélectionner **"Exécuter en tant qu'administrateur"**
 3. Le script s'exécute silencieusement (aucune invite, aucun redémarrage automatique)
 4. Consulter le log à la fin : `C:\Windows\Temp\win11-setup.log`
@@ -146,7 +146,7 @@ Sur un Windows 11 déjà installé :
 
 | Fichier | Description |
 |---|---|
-| `win11-setup-new.bat` | Script principal d'optimisation post-installation (~880 lignes) |
+| `win11-setup.bat` | Script principal d'optimisation post-installation (~880 lignes) |
 | `prerequis_WIN11.md` | Document de spécification : règles de conception, listes d'apps/services/tâches, contraintes techniques |
 | `CLAUDE.md` | Instructions pour Claude Code — structure du script, règles absolues, conventions |
 
