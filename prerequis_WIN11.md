@@ -188,6 +188,12 @@ Ces services ne doivent **jamais** être désactivés :
 | `WindowsAIService`    | Windows AI Service — orchestrateur NPU (25H2)       |
 | `WinMLService`        | Windows ML inference broker (25H2)                  |
 | `CoPilotMCPService`   | Copilot Model Context Protocol (25H2)               |
+| `DoSvc`               | Delivery Optimization — DODownloadMode=0 appliqué mais service tourne encore |
+| `WbioSrvc`            | Windows Biometric Service — BioEnrollment supprimé, pas de capteur sur 1 Go |
+| `EntAppSvc`           | Enterprise App Management — inutile hors domaine AD |
+| `WManSvc`             | Windows Management Service — MDM/Intune, inutile    |
+| `DmEnrollmentSvc`     | Device Management Enrollment — inscription MDM, inutile |
+| `TermService`         | Remote Desktop Services — conditionnel `NEED_RDP=0` |
 
 > ⚠️ `WSearch` : **NE PAS ajouter à cette liste** — toujours conservé sans exception
 
@@ -247,6 +253,14 @@ Ces services ne doivent **jamais** être désactivés :
 | `\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan`                      | Rapport intégrité disque      |
 | `\Microsoft\Windows\SettingSync\BackgroundUploadTask`                             | Sync paramètres cloud         |
 | `\Microsoft\Windows\MUI\LPRemove`                                                 | Cleanup packs langue (CPU logon) |
+| `\Microsoft\Windows\MemoryDiagnostic\ProcessMemoryDiagnosticEvents`               | Collecte données mémoire envoyées à Microsoft |
+| `\Microsoft\Windows\MemoryDiagnostic\RunFullMemoryDiagnostic`                     | Diagnostic complet RAM envoyé à Microsoft |
+| `\Microsoft\Windows\Location\Notifications`                                       | Localisation désactivée — tâche redondante |
+| `\Microsoft\Windows\Location\WindowsActionDialog`                                 | Localisation désactivée — tâche redondante |
+| `\Microsoft\Windows\StateRepository\MaintenanceTask`                              | Suit l'usage des apps pour Microsoft |
+| `\Microsoft\Windows\ErrorDetails\EnableErrorDetailsUpdate`                        | Contacte Microsoft pour màj détails d'erreurs |
+| `\Microsoft\Windows\ErrorDetails\ErrorDetailsUpdate`                              | Contacte Microsoft pour màj détails d'erreurs |
+| `\Microsoft\Windows\DiskCleanup\SilentCleanup`                                    | Nettoyage silencieux avec reporting MS |
 
 ---
 
