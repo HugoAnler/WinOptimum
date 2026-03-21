@@ -109,7 +109,7 @@ Intégrer le script dans un fichier `autounattend.xml` via la section `oobeSyste
 <FirstLogonCommands>
   <SynchronousCommand wcm:action="add">
     <Order>1</Order>
-    <CommandLine>cmd /c "D:\win11-setup.bat"</CommandLine>
+    <CommandLine>cmd /c "D:\win11-setup-new.bat"</CommandLine>
     <Description>Optimisation Windows 11</Description>
     <RequiresUserInput>false</RequiresUserInput>
   </SynchronousCommand>
