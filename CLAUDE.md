@@ -45,19 +45,19 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 | 4 | Pagefile fixe 6 Go — vérification 10 Go libres avant |
 | 5 | Mémoire : compression, SysMain/Prefetch désactivés |
 | 6 | Télémétrie / Copilot / Recall / IA 25H2 |
-| 7 | AutoLoggers (DiagTrack, DiagLog, SQMLogger, WiFiSession) |
+| 7 | AutoLoggers (DiagTrack, DiagLog, SQMLogger, WiFiSession, AppModel, LwtNetLog) |
 | 8 | Windows Search — désactive web/Bing (WSearch reste actif) |
 | 9 | Edge, GameDVR, Delivery Optimization |
 | 10 | Politiques Windows Update |
 | 11 | Vie privée, sécurité, WER, ContentDelivery, AppPrivacy |
-| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy |
+| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy, Ink Workspace, Peernet, TCP sécurité |
 | 12 | Interface Win10 (taskbar, widgets, menu contextuel, hibernation) |
-| 13 | CPU : `SystemResponsiveness=10` |
-| 14 | Services → `Start=4` (registre, effectif après reboot) |
+| 13 | CPU : `SystemResponsiveness=10`, sécurité TCP/IP (`DisableIPSourceRouting`, `EnableICMPRedirect=0`) |
+| 14 | Services → `Start=4` (79+ services, effectif après reboot) |
 | 15 | `sc stop` immédiat + `sc failure DiagTrack` |
-| 16 | Fichier `hosts` — blocage domaines télémétrie |
+| 16 | Fichier `hosts` — blocage 40+ domaines télémétrie |
 | 17a | GPO AppCompat (`DisableUAR`, `DisableInventory`, `DisablePCA`) |
-| 17 | 48+ tâches planifiées désactivées (`schtasks /Change /Disable`) |
+| 17 | 55+ tâches planifiées désactivées (`schtasks /Change /Disable`) |
 | 18 | Suppression apps UWP (PowerShell `Remove-AppxPackage`) |
 | 19 | Vidage `C:\Windows\Prefetch\` |
 | 19b | Vérification intégrité système (SFC/DISM) + restart Explorer |

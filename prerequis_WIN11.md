@@ -194,6 +194,15 @@ Ces services ne doivent **jamais** être désactivés :
 | `WManSvc`             | Windows Management Service — MDM/Intune, inutile    |
 | `DmEnrollmentSvc`     | Device Management Enrollment — inscription MDM, inutile |
 | `TermService`         | Remote Desktop Services — conditionnel `NEED_RDP=0` |
+| `tzautoupdate`        | Auto Time Zone Updater — inutile sur poste fixe (timezone configurée manuellement) |
+| `wmiApSrv`            | WMI Performance Adapter — collecte compteurs perf WMI, inutile en usage bureautique |
+| `SDRSVC`              | Windows Backup — inutile, aucune sauvegarde planifiée sur 1 Go RAM |
+| `spectrum`            | Windows Perception Service — HoloLens/Mixed Reality, inutile sur PC de bureau |
+| `SharedRealitySvc`    | Spatial Data Service — données spatiales Mixed Reality, inutile sur PC de bureau |
+| `p2pimsvc`            | Peer Networking Identity Manager — réseau pair-à-pair, inutile sur PC non-serveur |
+| `p2psvc`              | Peer Networking Grouping — réseau P2P, inutile sur PC non-serveur |
+| `PNRPsvc`             | Peer Name Resolution Protocol — résolution noms P2P, inutile |
+| `PNRPAutoReg`         | PNRP Machine Name Publication Service — publication nom machine sur PNRP, inutile |
 
 > ⚠️ `WSearch` : **NE PAS ajouter à cette liste** — toujours conservé sans exception
 
@@ -261,6 +270,13 @@ Ces services ne doivent **jamais** être désactivés :
 | `\Microsoft\Windows\ErrorDetails\EnableErrorDetailsUpdate`                        | Contacte Microsoft pour màj détails d'erreurs |
 | `\Microsoft\Windows\ErrorDetails\ErrorDetailsUpdate`                              | Contacte Microsoft pour màj détails d'erreurs |
 | `\Microsoft\Windows\DiskCleanup\SilentCleanup`                                    | Nettoyage silencieux avec reporting MS |
+| `\Microsoft\Windows\PushToInstall\LoginCheck`                                     | Vérifie les apps à installer en push à la connexion |
+| `\Microsoft\Windows\PushToInstall\Registration`                                   | Enregistre le poste pour push install Microsoft |
+| `\Microsoft\Windows\WaaSMedic\PlugScheduler`                                      | Réactive automatiquement les composants WU désactivés |
+| `\Microsoft\Windows\License Manager\TempSignedLicenseExchange`                    | Échange de licences temporaires — contacte Microsoft |
+| `\Microsoft\Windows\UNP\RunUpdateNotificationMgmt`                                | Notifications de disponibilité de mise à jour Windows |
+| `\Microsoft\Windows\ApplicationData\CleanupTemporaryState`                        | Nettoyage état temporaire apps — déclenche collecte usage |
+| `\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup`                  | Nettoyage apps provisionnées — inutile après setup |
 
 ---
 
@@ -291,6 +307,11 @@ Ces services ne doivent **jamais** être désactivés :
 | `mobile.events.data.microsoft.com`  | Pipeline Aria télémétrie      |
 | `edge.activity.windows.com`         | Historique activité Edge      |
 | `browser.events.data.msn.com`       | Télémétrie Edge/MSN           |
+| `telecommand.telemetry.microsoft.com` | Télécommande télémétrie Microsoft |
+| `storeedge.operationmanager.microsoft.com` | Store Edge opérations |
+| `checkappexec.microsoft.com`        | Vérification exécution apps (SmartScreen réseau) |
+| `inference.location.live.net`       | Inférence de localisation Microsoft |
+| `location.microsoft.com`            | Service de localisation Microsoft |
 
 > Adobe (commenté par défaut — activer si pas de logiciel Adobe) :
 > `lmlicenses.wip4.adobe.com`, `lm.licenses.adobe.com`, `practivate.adobe.com`, `activate.adobe.com`
@@ -376,6 +397,12 @@ Ces services ne doivent **jamais** être désactivés :
 | Feeds — fil d'actualités masqué           | HKCU `ShellFeedsTaskbarViewMode=2`                      |
 | Localisation — clés complètes             | `DisableLocationScripting=1` + `DisableWindowsLocationProvider=1` + `DisableSensors=1` |
 | Langue — liste non exposée aux sites web  | HKCU `HttpAcceptLanguageOptOut=1`                       |
+| Windows Ink Workspace désactivé           | `AllowWindowsInkWorkspace=0` — bouton stylet inutile sur PC de bureau |
+| Réseau P2P/PNRP désactivé                | `HKLM\...\Peernet\Disabled=1` — protocoles pair-à-pair inutiles |
+| TCP/IP sécurité — routage source off      | `DisableIPSourceRouting=2` — prévient usurpation d'adresse |
+| TCP/IP sécurité — redirections ICMP off   | `EnableICMPRedirect=0` — prévient attaques de redirection routage |
+| AutoLogger AppModel désactivé             | Trace cycle de vie apps UWP — inutile en production    |
+| AutoLogger LwtNetLog désactivé            | Trace réseau légère — inutile en production            |
 
 ---
 
