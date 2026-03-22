@@ -192,6 +192,10 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\CloudExperienceHos
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\NtfsLog" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 :: ReadyBoot — prefetch au boot (inutile : EnablePrefetcher=0 déjà appliqué)
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\ReadyBoot" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
+:: AppModel — trace cycle de vie des apps UWP (inutile en production)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\AppModel" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
+:: LwtNetLog — trace réseau légère (inutile en production)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\WMI\Autologger\LwtNetLog" /v Start /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 7 : AutoLoggers desactives >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -432,8 +436,14 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement" /
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\Application" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\System" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\EventLog\Security" /v MaxSize /t REG_DWORD /d 1048576 /f >nul 2>&1
+:: Windows Ink Workspace — désactivé (inutile sur PC de bureau sans stylet/tablette)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\WindowsInkWorkspace" /v AllowWindowsInkWorkspace /t REG_DWORD /d 0 /f >nul 2>&1
+:: Réseau pair-à-pair (PNRP/Peernet) — désactiver (inutile sur PC non-serveur)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Peernet" /v Disabled /t REG_DWORD /d 1 /f >nul 2>&1
+:: Tablet PC Input Service — désactiver la collecte données stylet/encre (inutile sur PC de bureau)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\TabletPC" /v PreventHandwritingErrorReports /t REG_DWORD /d 1 /f >nul 2>&1
 
-echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU/Tips/EventLog OK >> "%LOG%"
+echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU/Tips/EventLog/InkWorkspace/Peernet OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 12 — Interface utilisateur (style Windows 10)
@@ -575,7 +585,11 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProf
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling" /v PowerThrottlingOff /t REG_DWORD /d 1 /f >nul 2>&1
 :: TCP Time-Wait — réduire de 120s à 30s (libération sockets plus rapide)
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v TcpTimedWaitDelay /t REG_DWORD /d 30 /f >nul 2>&1
-echo [%date% %time%] Section 13 : PriorityControl/PowerThrottling/TCP OK >> "%LOG%"
+:: TCP/IP sécurité — désactiver le routage source IP (prévient les attaques d'usurpation)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableIPSourceRouting /t REG_DWORD /d 2 /f >nul 2>&1
+:: TCP/IP sécurité — désactiver les redirections ICMP (prévient les attaques de redirection de routage)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v EnableICMPRedirect /t REG_DWORD /d 0 /f >nul 2>&1
+echo [%date% %time%] Section 13 : PriorityControl/PowerThrottling/TCP/IPSecurity OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 13b — Configuration système avancée
@@ -696,6 +710,20 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\DmEnrollmentSvc" /v Start /t REG
 if "%NEED_RDP%"=="0" reg add "HKLM\SYSTEM\CurrentControlSet\Services\TermService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 :: Spooler d'impression — conditionnel (consomme RAM en permanence)
 if "%NEED_PRINTER%"=="0" reg add "HKLM\SYSTEM\CurrentControlSet\Services\Spooler" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Mise à jour automatique fuseau horaire — inutile sur poste fixe (timezone configurée manuellement)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\tzautoupdate" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: WMI Performance Adapter — collecte compteurs perf WMI à la demande — inutile en usage bureautique
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\wmiApSrv" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Windows Backup — inutile (aucune sauvegarde Windows planifiée sur 1 Go RAM)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\SDRSVC" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Windows Perception / Spatial Data — HoloLens / Mixed Reality — inutile sur PC de bureau
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\spectrum" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\SharedRealitySvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Réseau pair-à-pair (PNRP) — inutile sur PC de bureau non-serveur
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\p2pimsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\p2psvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\PNRPsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\PNRPAutoReg" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboot) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -707,6 +735,10 @@ for %%S in (DiagTrack dmwappushsvc dmwappushservice diagsvc WerSvc wercplsupport
 if "%NEED_BT%"=="0" sc stop BthAvctpSvc >nul 2>&1
 if "%NEED_PRINTER%"=="0" sc stop Spooler >nul 2>&1
 if "%NEED_RDP%"=="0" sc stop TermService >nul 2>&1
+:: Arrêt immédiat des nouveaux services désactivés
+for %%S in (tzautoupdate wmiApSrv SDRSVC spectrum SharedRealitySvc p2pimsvc p2psvc PNRPsvc PNRPAutoReg) do (
+  sc query %%S >nul 2>&1 && sc stop %%S >nul 2>&1
+)
 echo [%date% %time%] Section 15 : sc stop envoye aux services listes >> "%LOG%"
 :: Paramètres de récupération DiagTrack — Ne rien faire sur toutes défaillances
 sc failure DiagTrack reset= 0 actions= none/0/none/0/none/0 >nul 2>&1
@@ -761,6 +793,11 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
   echo 0.0.0.0 watson.events.data.microsoft.com
   echo 0.0.0.0 edge.activity.windows.com
   echo 0.0.0.0 browser.events.data.msn.com
+  echo 0.0.0.0 telecommand.telemetry.microsoft.com
+  echo 0.0.0.0 storeedge.operationmanager.microsoft.com
+  echo 0.0.0.0 checkappexec.microsoft.com
+  echo 0.0.0.0 inference.location.live.net
+  echo 0.0.0.0 location.microsoft.com
 ) >> "%HOSTSFILE%" 2>nul
 
 :: Hosts Adobe — commentés par défaut (BLOCK_ADOBE=1 pour activer)
@@ -872,6 +909,19 @@ schtasks /Query /TN "\Microsoft\Windows\ErrorDetails\EnableErrorDetailsUpdate" >
 schtasks /Query /TN "\Microsoft\Windows\ErrorDetails\ErrorDetailsUpdate" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\ErrorDetails\ErrorDetailsUpdate" /Disable >nul 2>&1
 :: DiskCleanup — nettoyage silencieux avec reporting MS (Prefetch déjà vidé en section 19)
 schtasks /Query /TN "\Microsoft\Windows\DiskCleanup\SilentCleanup" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\DiskCleanup\SilentCleanup" /Disable >nul 2>&1
+:: PushToInstall — installation d'apps en push à la connexion (service déjà désactivé)
+schtasks /Query /TN "\Microsoft\Windows\PushToInstall\LoginCheck" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\PushToInstall\LoginCheck" /Disable >nul 2>&1
+schtasks /Query /TN "\Microsoft\Windows\PushToInstall\Registration" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\PushToInstall\Registration" /Disable >nul 2>&1
+:: WaaSMedic — tente de réactiver automatiquement les composants Windows Update
+schtasks /Query /TN "\Microsoft\Windows\WaaSMedic\PlugScheduler" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WaaSMedic\PlugScheduler" /Disable >nul 2>&1
+:: License Manager — échange de licences temporaires signées (contacte Microsoft)
+schtasks /Query /TN "\Microsoft\Windows\License Manager\TempSignedLicenseExchange" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\License Manager\TempSignedLicenseExchange" /Disable >nul 2>&1
+:: UNP — notifications de disponibilité de mise à jour Windows
+schtasks /Query /TN "\Microsoft\Windows\UNP\RunUpdateNotificationMgmt" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\UNP\RunUpdateNotificationMgmt" /Disable >nul 2>&1
+:: ApplicationData — nettoyage état temporaire apps (déclenche collecte usage)
+schtasks /Query /TN "\Microsoft\Windows\ApplicationData\CleanupTemporaryState" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\ApplicationData\CleanupTemporaryState" /Disable >nul 2>&1
+:: AppxDeploymentClient — nettoyage apps provisionnées (inutile après setup initial)
+schtasks /Query /TN "\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup" /Disable >nul 2>&1
 echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -916,11 +966,11 @@ echo [%date% %time%] Section 19b : Explorer redémarre >> "%LOG%"
 :: SECTION 20 — Fin
 :: ═══════════════════════════════════════════════════════════
 echo [%date% %time%] === RESUME === >> "%LOG%"
-echo [%date% %time%] Services : 70+ desactives (Start=4, effectifs apres reboot) >> "%LOG%"
-echo [%date% %time%] Taches planifiees : 78+ desactivees >> "%LOG%"
+echo [%date% %time%] Services : 79+ desactives (Start=4, effectifs apres reboot) >> "%LOG%"
+echo [%date% %time%] Taches planifiees : 86+ desactivees >> "%LOG%"
 echo [%date% %time%] Apps UWP : 72+ supprimees >> "%LOG%"
-echo [%date% %time%] Hosts : 35+ domaines telemetrie bloques >> "%LOG%"
-echo [%date% %time%] Registre : 115+ cles vie privee/telemetrie/perf appliquees >> "%LOG%"
+echo [%date% %time%] Hosts : 40+ domaines telemetrie bloques >> "%LOG%"
+echo [%date% %time%] Registre : 120+ cles vie privee/telemetrie/perf appliquees >> "%LOG%"
 echo [%date% %time%] win11-setup.bat termine avec succes. Reboot recommande. >> "%LOG%"
 echo.
 echo Optimisation terminee. Un redemarrage est recommande pour finaliser.
