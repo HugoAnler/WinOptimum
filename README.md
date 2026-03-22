@@ -148,7 +148,7 @@ Sur un Windows 11 déjà installé :
 |---|---|
 | `win11-setup.bat` | Script principal d'optimisation post-installation (~880 lignes) |
 | `prerequis_WIN11.md` | Document de spécification : règles de conception, listes d'apps/services/tâches, contraintes techniques |
-| `CLAUDE.md` | Instructions pour Claude Code — structure du script, règles absolues, conventions |
+| `CLAUDE.md` | Fichier de configuration interne — structure du script, règles absolues, conventions |
 
 ---
 
@@ -160,3 +160,4 @@ Sur un Windows 11 déjà installé :
 - **Contexte FirstLogonCommands** : certaines limitations WMI et PowerShell s'appliquent dans ce contexte d'exécution — le script est conçu pour les contourner proprement.
 - **Windows Defender conservé** : aucune modification de la sécurité antivirus n'est effectuée (`SubmitSamplesConsent` jamais à 2).
 - **Vérification intégrité** : SFC et DISM sont exécutés en fin de script pour vérifier l'intégrité du système après les modifications.
+- **Outil de développement** : ne jamais mentionner Claude ou Claude Code dans les fichiers du projet.
