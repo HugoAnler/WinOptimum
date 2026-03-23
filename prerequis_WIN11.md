@@ -402,7 +402,7 @@ Ces services ne doivent **jamais** être désactivés :
 | Search HKCU Bing/Cortana désactivé        | `BingSearchEnabled=0` + `CortanaConsent=0` (per-user)   |
 | Windows Search — cloud désactivé          | `AllowCloudSearch=0` + `ConnectedSearchUseWeb=0` + HKLM Policy |
 | OneDrive auto-start désactivé             | `DisableFileSyncNGSC=1` (HKLM Policy OneDrive)         |
-| Windows Spotlight désactivé               | `DisableWindowsSpotlightFeatures=1` (HKCU Policy — pubs écran verrouillage) |
+| Windows Spotlight                         | **Conservé** — fond d'écran verrouillage = état Windows par défaut, ne pas toucher |
 | GameDVR — fullscreen optimizations off    | HKCU `GameDVR_FSEBehavior=2`                            |
 | Remote Assistance — contrôle total bloqué | `fAllowFullControl=0`                                   |
 | WER — pas d'UI                            | `DontShowUI=1`                                          |
@@ -486,9 +486,7 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Modifier le DNS sécurisé Edge            | `BuiltInDnsClientEnabled`, `DnsOverHttpsMode`, `DnsOverHttpsTemplates` — section **Sécurité > Utiliser un DNS sécurisé** dans Edge — ne jamais écrire ces clés (choix utilisateur, impact réseau critique) |
 | Écrire toute clé sous `HKLM\SOFTWARE\Policies\Microsoft\Edge` | La seule présence de ce chemin affiche **"géré par une organisation"** dans Edge — interdit sans exception. Inclut aussi `HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\*` |
 | Mentionner Claude ou Claude Code dans un fichier du projet    | Outil interne — ne doit pas apparaître dans les fichiers du dépôt |
-| Désactiver l'écran de verrouillage (`NoLockScreen=1`)        | Écran de verrouillage conservé — sécurité utilisateur |
-| Désactiver le diaporama de verrouillage (`NoLockScreenSlideshow=1`) | Fond d'écran et diaporama conservés — choix utilisateur non négociable |
-| Désactiver `RotatingLockScreenEnabled` / `RotatingLockScreenOverlayEnabled` | Fond d'écran rotatif conservé — choix utilisateur non négociable |
+| Toute modification de l'écran de verrouillage (`NoLockScreen`, `NoLockScreenCamera`, `NoLockScreenSlideshow`, `RotatingLockScreenEnabled`, `RotatingLockScreenOverlayEnabled`, `DisableWindowsSpotlightFeatures`) | Écran de verrouillage, fond d'écran et Spotlight conservés à l'état Windows par défaut — non négociable |
 
 ---
 

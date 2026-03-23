@@ -173,8 +173,7 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudSearch /t REG_DWORD /d 0 /f >nul 2>&1
 :: OneDrive auto-start désactivé
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v DisableFileSyncNGSC /t REG_DWORD /d 1 /f >nul 2>&1
-:: Windows Spotlight désactivé (publicités écran verrouillage)
-reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsSpotlightFeatures /t REG_DWORD /d 1 /f >nul 2>&1
+:: Windows Spotlight — conservé (fond d'écran verrouillage, choix utilisateur — ne pas toucher)
 :: Windows Defender — SubmitSamplesConsent déjà défini à 0 via registre (clés Spynet ci-dessus)
 :: Ne pas utiliser Set-MpPreference -SubmitSamplesConsent 2 : affaiblit Defender (interdit par prerequis)
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP/Defender/DataCollection OK >> "%LOG%"
@@ -315,7 +314,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotificatio
 :: CloudContent — expériences personnalisées / Spotlight / SoftLanding
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailoredExperiencesWithDiagnosticData /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableSoftLanding /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsSpotlightFeatures /t REG_DWORD /d 1 /f >nul 2>&1
+:: DisableWindowsSpotlightFeatures — conservé (fond d'écran verrouillage — ne pas toucher)
 :: CloudContent 25H2 — contenu "optimisé" cloud injecté dans l'interface (nouveau en 25H2)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableCloudOptimizedContent /t REG_DWORD /d 1 /f >nul 2>&1
 
@@ -398,9 +397,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsActivate
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsActivateWithVoiceAboveLock /t REG_DWORD /d 2 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessBackgroundSpatialPerception /t REG_DWORD /d 2 /f >nul 2>&1
 
-:: Lock Screen — désactiver la caméra (raccourci photo depuis l'écran verrouillé)
-:: Diaporama et fond d'écran conservés (choix utilisateur)
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" /v NoLockScreenCamera /t REG_DWORD /d 1 /f >nul 2>&1
+:: Lock Screen — aucune modification (fond d'écran, diaporama, Spotlight, caméra : état Windows par défaut)
 
 :: Écriture manuscrite — partage données désactivé
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\TabletPC" /v PreventHandwritingDataSharing /t REG_DWORD /d 1 /f >nul 2>&1
