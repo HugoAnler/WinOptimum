@@ -46,18 +46,18 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 | 5 | Mémoire : compression, SysMain/Prefetch désactivés |
 | 6 | Télémétrie / Copilot / Recall / IA 25H2 |
 | 7 | AutoLoggers (DiagTrack, DiagLog, SQMLogger, WiFiSession, AppModel, LwtNetLog) |
-| 8 | Windows Search — désactive web/Bing (WSearch reste actif) |
-| 9 | Edge, GameDVR, Delivery Optimization |
+| 8 | Windows Search — désactive web/Bing/Search Highlights (WSearch reste actif) |
+| 9 | GameDVR, Delivery Optimization, Edge démarrage anticipé/arrière-plan (HKCU) |
 | 10 | Politiques Windows Update |
 | 11 | Vie privée, sécurité, WER, ContentDelivery, AppPrivacy |
-| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy, Ink Workspace, Peernet, TCP sécurité |
+| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy, Ink Workspace, Peernet, TCP sécurité, LLMNR, WPAD, SMBv1, Biométrie, écran de verrouillage |
 | 12 | Interface Win10 (taskbar, widgets, menu contextuel, hibernation) |
 | 13 | CPU : `SystemResponsiveness=10`, sécurité TCP/IP (`DisableIPSourceRouting`, `EnableICMPRedirect=0`) |
-| 14 | Services → `Start=4` (79+ services, effectif après reboot) |
+| 14 | Services → `Start=4` (90+ services, effectif après reboot) |
 | 15 | `sc stop` immédiat + `sc failure DiagTrack` |
-| 16 | Fichier `hosts` — blocage 40+ domaines télémétrie |
+| 16 | Fichier `hosts` — blocage 57+ domaines télémétrie |
 | 17a | GPO AppCompat (`DisableUAR`, `DisableInventory`, `DisablePCA`) |
-| 17 | 55+ tâches planifiées désactivées (`schtasks /Change /Disable`) |
+| 17 | 73+ tâches planifiées désactivées (`schtasks /Change /Disable`) |
 | 18 | Suppression apps UWP (PowerShell `Remove-AppxPackage`) |
 | 19 | Vidage `C:\Windows\Prefetch\` |
 | 19b | Vérification intégrité système (SFC/DISM) + restart Explorer |

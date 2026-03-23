@@ -39,20 +39,20 @@ Le script est organisé en **20 sections** qui s'exécutent séquentiellement :
 | 4 | Pagefile fixe à 6 Go sur C: (uniquement si ≥ 10 Go d'espace libre) |
 | 5 | Optimisation mémoire : compression activée, Prefetch désactivé, SysMain arrêté, opt-out télémétrie PowerShell |
 | 6 | Zéro télémétrie : 20+ clés registre — Copilot, Recall, DiagTrack, IA 25H2, Spotlight, Cloud Search, collecte Microsoft |
-| 7 | AutoLoggers désactivés : DiagTrack, DiagLog, SQMLogger, WiFiSession |
-| 8 | Windows Search : désactivation de la recherche web et Bing (le service WSearch reste actif) |
-| 9 | Edge (démarrage anticipé, arrière-plan), GameDVR désactivé, Delivery Optimization désactivé |
+| 7 | AutoLoggers désactivés : DiagTrack, DiagLog, SQMLogger, WiFiSession, NtfsLog, ReadyBoot, AppModel, LwtNetLog, CloudExperienceHostOobe |
+| 8 | Windows Search : désactivation recherche web, Bing, Search Highlights animés (WSearch reste actif) |
+| 9 | GameDVR désactivé, Delivery Optimization désactivé, Edge démarrage anticipé/arrière-plan off (HKCU) |
 | 10 | Politiques Windows Update : redémarrage rapide, réseau mesuré autorisé, notifications conservées |
 | 11 | Vie privée & sécurité : Cortana, ID publicitaire, historique d'activité, géolocalisation, RemoteAssistance, saisie, AutoPlay, contenu cloud, cartes hors ligne, modèle vocal |
-| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy |
+| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy, LLMNR, WPAD, SMBv1, Biométrie, écran de verrouillage |
 | 12 | Interface Win10 : barre à gauche, widgets supprimés, Teams/Copilot masqués, menu contextuel classique, "Ce PC" par défaut, Galerie/Réseau masqués, son démarrage off, hibernation off, Fast Startup off |
-| 13 | Priorité CPU : `SystemResponsiveness = 10` |
-| 14 | 65+ services désactivés via registre (`Start=4`) |
+| 13 | Priorité CPU : `SystemResponsiveness = 10`, PowerThrottling off, TCP security |
+| 14 | 90+ services désactivés via registre (`Start=4`) |
 | 15 | Arrêt immédiat des services désactivés + `sc failure DiagTrack` |
-| 16 | Fichier `hosts` : 35+ domaines de télémétrie bloqués en `0.0.0.0` (+ bloc Adobe optionnel) |
+| 16 | Fichier `hosts` : 57+ domaines de télémétrie bloqués en `0.0.0.0` (+ bloc Adobe optionnel) |
 | 17a | GPO AppCompat : `DisableUAR`, `DisableInventory`, `DisablePCA`, `AITEnable=0` |
-| 17 | 48+ tâches planifiées désactivées (télémétrie, CEIP, Recall, Copilot, Xbox, IA 25H2) |
-| 18 | Suppression de 70+ applications bloatware (UWP) via PowerShell |
+| 17 | 73+ tâches planifiées désactivées (télémétrie, CEIP, Recall, Copilot, Xbox, IA 25H2, MDM, Work Folders) |
+| 18 | Suppression de 73+ applications bloatware (UWP) via PowerShell |
 | 19 | Nettoyage du dossier `C:\Windows\Prefetch` |
 | 19b | Vérification intégrité système (SFC/DISM) + restart Explorer |
 | 20 | Résumé d'exécution dans le log + fin du script |
@@ -133,11 +133,11 @@ Sur un Windows 11 déjà installé :
 
 | Catégorie | Quantité |
 |---|---|
-| Clés registre modifiées | 100+ |
-| Services désactivés | 65+ |
-| Tâches planifiées désactivées | 48+ |
-| Applications (UWP) supprimées | 70+ |
-| Domaines de télémétrie bloqués | 35+ |
+| Clés registre modifiées | 135+ |
+| Services désactivés | 90+ |
+| Tâches planifiées désactivées | 73+ |
+| Applications (UWP) supprimées | 73+ |
+| Domaines de télémétrie bloqués | 57+ |
 | Options de configuration | 4 |
 
 ---
