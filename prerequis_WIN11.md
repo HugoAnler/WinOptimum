@@ -429,7 +429,6 @@ Ces services ne doivent **jamais** être désactivés :
 | Search Highlights désactivés              | `EnableDynamicContentInWSB=0` — tuiles animées MSN/IA dans la barre de recherche |
 | Edge démarrage anticipé off (HKCU)        | `StartupBoostEnabled=0` — pas de policy (évite "géré par l'organisation") |
 | Edge mode arrière-plan off (HKCU)         | `BackgroundModeEnabled=0` — économise RAM/CPU au repos |
-| Écran de verrouillage désactivé           | `NoLockScreen=1` — connexion directe, économise mémoire |
 | Biométrie désactivée (policy)             | `HKLM\...\Biometrics\Enabled=0` — complément WbioSrvc=4 |
 | LLMNR désactivé                           | `EnableMulticast=0` — réduit broadcasts réseau + sécurité |
 | WPAD désactivé                            | `DisableWpad=1` — prévient proxy poisoning              |
@@ -487,6 +486,7 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Modifier le DNS sécurisé Edge            | `BuiltInDnsClientEnabled`, `DnsOverHttpsMode`, `DnsOverHttpsTemplates` — section **Sécurité > Utiliser un DNS sécurisé** dans Edge — ne jamais écrire ces clés (choix utilisateur, impact réseau critique) |
 | Écrire toute clé sous `HKLM\SOFTWARE\Policies\Microsoft\Edge` | La seule présence de ce chemin affiche **"géré par une organisation"** dans Edge — interdit sans exception. Inclut aussi `HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\*` |
 | Mentionner Claude ou Claude Code dans un fichier du projet    | Outil interne — ne doit pas apparaître dans les fichiers du dépôt |
+| Désactiver l'écran de verrouillage (`NoLockScreen=1`)        | Écran de verrouillage conservé — sécurité utilisateur |
 
 ---
 

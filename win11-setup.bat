@@ -447,8 +447,6 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\WindowsInkWorkspace" /v AllowWindowsIn
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Peernet" /v Disabled /t REG_DWORD /d 1 /f >nul 2>&1
 :: Tablet PC Input Service — désactiver la collecte données stylet/encre (inutile sur PC de bureau)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\TabletPC" /v PreventHandwritingErrorReports /t REG_DWORD /d 1 /f >nul 2>&1
-:: Écran de verrouillage — désactiver entièrement (économise mémoire, connexion plus rapide)
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" /v NoLockScreen /t REG_DWORD /d 1 /f >nul 2>&1
 :: Biométrie — policy HKLM (complément WbioSrvc=4 désactivé en section 14)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics" /v Enabled /t REG_DWORD /d 0 /f >nul 2>&1
 :: LLMNR — désactiver (réduit broadcast réseau + sécurité : pas de résolution de noms locale non authentifiée)

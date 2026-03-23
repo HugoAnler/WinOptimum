@@ -44,7 +44,7 @@ Le script est organisé en **20 sections** qui s'exécutent séquentiellement :
 | 9 | GameDVR désactivé, Delivery Optimization désactivé, Edge démarrage anticipé/arrière-plan off (HKCU) |
 | 10 | Politiques Windows Update : redémarrage rapide, réseau mesuré autorisé, notifications conservées |
 | 11 | Vie privée & sécurité : Cortana, ID publicitaire, historique d'activité, géolocalisation, RemoteAssistance, saisie, AutoPlay, contenu cloud, cartes hors ligne, modèle vocal |
-| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy, LLMNR, WPAD, SMBv1, Biométrie, écran de verrouillage |
+| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy, LLMNR, WPAD, SMBv1, Biométrie |
 | 12 | Interface Win10 : barre à gauche, widgets supprimés, Teams/Copilot masqués, menu contextuel classique, "Ce PC" par défaut, Galerie/Réseau masqués, son démarrage off, hibernation off, Fast Startup off |
 | 13 | Priorité CPU : `SystemResponsiveness = 10`, PowerThrottling off, TCP security |
 | 14 | 90+ services désactivés via registre (`Start=4`) |
