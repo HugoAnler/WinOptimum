@@ -97,6 +97,8 @@ Ces apps ne doivent **jamais** être supprimées, peu importe le profil :
 | `SpotifyAB.SpotifyMusic`                   | Streaming musique tiers           |
 | `clipchamp.Clipchamp`                      | Éditeur vidéo                     |
 | `king.com.*` (joker)                       | Jeux CandyCrush & co              |
+| `Microsoft.WindowsCommunicationsApps`      | Mail & Calendrier UWP             |
+| `Microsoft.Windows.HolographicFirstRun`    | OOBE HoloLens — inutile sur PC    |
 
 > ⚠️ `Microsoft.RemoteDesktop` et `Microsoft.WindowsCamera` sont supprimés inconditionnellement dans la boucle APPLIST — `NEED_RDP` et `NEED_WEBCAM` n'affectent plus la suppression de ces apps (ils contrôlent uniquement `BthAvctpSvc` pour le Bluetooth).
 
@@ -203,6 +205,12 @@ Ces services ne doivent **jamais** être désactivés :
 | `p2psvc`              | Peer Networking Grouping — réseau P2P, inutile sur PC non-serveur |
 | `PNRPsvc`             | Peer Name Resolution Protocol — résolution noms P2P, inutile |
 | `PNRPAutoReg`         | PNRP Machine Name Publication Service — publication nom machine sur PNRP, inutile |
+| `uhssvc`              | Microsoft Update Health Service — rapporte état WU à Microsoft et tente de restaurer composants désactivés |
+| `PcaSvc`              | Program Compatibility Assistant — contacte Microsoft pour collecte données compatibilité |
+| `stisvc`              | Windows Image Acquisition (WIA) — scanners/caméras TWAIN, inutile sur PC sans scanner |
+| `TapiSrv`             | Telephony (TAPI) — inutile sur PC de bureau sans modem/RNIS/softphone |
+| `WFDSConMgrSvc`       | Wi-Fi Direct Services Connection Manager — inutile sur PC de bureau fixe |
+| `SessionEnv`          | Remote Desktop Configuration — conditionnel `NEED_RDP=0` (complément TermService) |
 
 > ⚠️ `WSearch` : **NE PAS ajouter à cette liste** — toujours conservé sans exception
 
@@ -277,6 +285,13 @@ Ces services ne doivent **jamais** être désactivés :
 | `\Microsoft\Windows\UNP\RunUpdateNotificationMgmt`                                | Notifications de disponibilité de mise à jour Windows |
 | `\Microsoft\Windows\ApplicationData\CleanupTemporaryState`                        | Nettoyage état temporaire apps — déclenche collecte usage |
 | `\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup`                  | Nettoyage apps provisionnées — inutile après setup |
+| `\Microsoft\Windows\WindowsUpdate\sih`                                            | Service Initiated Healing — restaure silencieusement les composants WU désactivés |
+| `\Microsoft\Windows\RetailDemo\CleanupOfflineContent`                             | Nettoyage contenu démo retail hors ligne |
+| `\Microsoft\Windows\Work Folders\Work Folders Logon Synchronization`              | Synchronisation dossiers de travail — fonctionnalité entreprise inutile |
+| `\Microsoft\Windows\Workplace Join\Automatic-Device-Join`                         | Adhésion MDM automatique — inutile hors domaine d'entreprise |
+| `\Microsoft\Windows\DUSM\dusmtask`                                                | Maintenance Data Usage Service — complément DusmSvc désactivé |
+| `\Microsoft\Windows\Management\Provisioning\Cellular`                             | Approvisionnement réseau cellulaire — inutile sur PC de bureau |
+| `\Microsoft\Windows\Management\Provisioning\Logon`                                | MDM provisioning au logon — inutile hors Intune/SCCM |
 
 ---
 
@@ -312,6 +327,14 @@ Ces services ne doivent **jamais** être désactivés :
 | `checkappexec.microsoft.com`        | Vérification exécution apps (SmartScreen réseau) |
 | `inference.location.live.net`       | Inférence de localisation Microsoft |
 | `location.microsoft.com`            | Service de localisation Microsoft |
+| `watson.ppe.telemetry.microsoft.com` | Watson pipeline PPE (staging télémétrie) |
+| `umwatson.telemetry.microsoft.com`  | Watson user-mode crash reports |
+| `config.edge.skype.com`             | Config Skype/Teams (apps supprimées) |
+| `tile-service.weather.microsoft.com` | Télémétrie tuile météo MSN |
+| `outlookads.live.com`               | Publicités Outlook |
+| `dl.delivery.mp.microsoft.com`      | CDN Delivery Optimization (DO déjà désactivé) |
+| `fp.msedge.net`                     | CDN télémétrie Edge |
+| `nexus.officeapps.live.com`         | Télémétrie Office |
 
 > Adobe (commenté par défaut — activer si pas de logiciel Adobe) :
 > `lmlicenses.wip4.adobe.com`, `lm.licenses.adobe.com`, `practivate.adobe.com`, `activate.adobe.com`
@@ -379,7 +402,7 @@ Ces services ne doivent **jamais** être désactivés :
 | Search HKCU Bing/Cortana désactivé        | `BingSearchEnabled=0` + `CortanaConsent=0` (per-user)   |
 | Windows Search — cloud désactivé          | `AllowCloudSearch=0` + `ConnectedSearchUseWeb=0` + HKLM Policy |
 | OneDrive auto-start désactivé             | `DisableFileSyncNGSC=1` (HKLM Policy OneDrive)         |
-| Windows Spotlight désactivé               | `DisableWindowsSpotlightFeatures=1` (HKCU Policy — pubs écran verrouillage) |
+| Windows Spotlight                         | **Conservé** — fond d'écran verrouillage = état Windows par défaut, ne pas toucher |
 | GameDVR — fullscreen optimizations off    | HKCU `GameDVR_FSEBehavior=2`                            |
 | Remote Assistance — contrôle total bloqué | `fAllowFullControl=0`                                   |
 | WER — pas d'UI                            | `DontShowUI=1`                                          |
@@ -403,6 +426,13 @@ Ces services ne doivent **jamais** être désactivés :
 | TCP/IP sécurité — redirections ICMP off   | `EnableICMPRedirect=0` — prévient attaques de redirection routage |
 | AutoLogger AppModel désactivé             | Trace cycle de vie apps UWP — inutile en production    |
 | AutoLogger LwtNetLog désactivé            | Trace réseau légère — inutile en production            |
+| Search Highlights désactivés              | `EnableDynamicContentInWSB=0` — tuiles animées MSN/IA dans la barre de recherche |
+| Edge démarrage anticipé off (HKCU)        | `StartupBoostEnabled=0` — pas de policy (évite "géré par l'organisation") |
+| Edge mode arrière-plan off (HKCU)         | `BackgroundModeEnabled=0` — économise RAM/CPU au repos |
+| Biométrie désactivée (policy)             | `HKLM\...\Biometrics\Enabled=0` — complément WbioSrvc=4 |
+| LLMNR désactivé                           | `EnableMulticast=0` — réduit broadcasts réseau + sécurité |
+| WPAD désactivé                            | `DisableWpad=1` — prévient proxy poisoning              |
+| SMBv1 désactivé (belt-and-suspenders)     | `LanmanServer\Parameters\SMB1=0` — belt-and-suspenders 25H2 |
 
 ---
 
@@ -442,7 +472,6 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Remplacer `explorer.exe`              | Shell alternatif — instable, jamais                           |
 | Modifier Defender / antivirus         | Intouchable — sécurité système                                |
 | Désactiver `ctfmon.exe`               | Dictée vocale en dépend                                       |
-| Désactiver `stisvc` / `WiaRpc`        | Scanner en dépend                                             |
 | Désactiver `TiWorker.exe`             | Lié à Windows Update — interdit                               |
 | Désactiver Aero / `dwm.exe`           | Wallpaper Engine en dépend                                    |
 | Désactiver stack VPN RAS              | CyberGhost en dépend potentiellement                          |
@@ -457,6 +486,7 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Modifier le DNS sécurisé Edge            | `BuiltInDnsClientEnabled`, `DnsOverHttpsMode`, `DnsOverHttpsTemplates` — section **Sécurité > Utiliser un DNS sécurisé** dans Edge — ne jamais écrire ces clés (choix utilisateur, impact réseau critique) |
 | Écrire toute clé sous `HKLM\SOFTWARE\Policies\Microsoft\Edge` | La seule présence de ce chemin affiche **"géré par une organisation"** dans Edge — interdit sans exception. Inclut aussi `HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\*` |
 | Mentionner Claude ou Claude Code dans un fichier du projet    | Outil interne — ne doit pas apparaître dans les fichiers du dépôt |
+| Toute modification de l'écran de verrouillage (`NoLockScreen`, `NoLockScreenCamera`, `NoLockScreenSlideshow`, `RotatingLockScreenEnabled`, `RotatingLockScreenOverlayEnabled`, `DisableWindowsSpotlightFeatures`) | Écran de verrouillage, fond d'écran et Spotlight conservés à l'état Windows par défaut — non négociable |
 
 ---
 
@@ -464,7 +494,6 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 
 | Action déconseillée par défaut        | Raison                                                        |
 |---------------------------------------|---------------------------------------------------------------|
-| Désactiver `TapiSrv`                  | Préférence utilisateur — conserver                            |
 | Désactiver `NgcSvc` / `NgcCtnrSvc`    | Windows Hello/PIN — risque blocage login compte Microsoft     |
 | Désactiver `WinHttpAutoProxySvc`      | VPN CyberGhost peut en dépendre                               |
 

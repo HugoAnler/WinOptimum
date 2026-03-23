@@ -173,8 +173,7 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudSearch /t REG_DWORD /d 0 /f >nul 2>&1
 :: OneDrive auto-start désactivé
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v DisableFileSyncNGSC /t REG_DWORD /d 1 /f >nul 2>&1
-:: Windows Spotlight désactivé (publicités écran verrouillage)
-reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsSpotlightFeatures /t REG_DWORD /d 1 /f >nul 2>&1
+:: Windows Spotlight — conservé (fond d'écran verrouillage, choix utilisateur — ne pas toucher)
 :: Windows Defender — SubmitSamplesConsent déjà défini à 0 via registre (clés Spynet ci-dessus)
 :: Ne pas utiliser Set-MpPreference -SubmitSamplesConsent 2 : affaiblit Defender (interdit par prerequis)
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP/Defender/DataCollection OK >> "%LOG%"
@@ -213,6 +212,8 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudS
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowSearchToUseLocation /t REG_DWORD /d 0 /f >nul 2>&1
 :: Exclure Outlook de l'indexation (réduit I/O disque sur 1 Go RAM)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v PreventIndexingOutlook /t REG_DWORD /d 1 /f >nul 2>&1
+:: Highlights dynamiques barre de recherche — désactiver les tuiles animées MSN/IA
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v EnableDynamicContentInWSB /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 8 : WindowsSearch policies OK (WSearch conserve) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -228,7 +229,10 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization" /v DODow
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Messaging" /v AllowMessageSync /t REG_DWORD /d 0 /f >nul 2>&1
 :: GameDVR — désactiver les optimisations plein écran (réduit overhead GPU)
 reg add "HKCU\System\GameConfigStore" /v GameDVR_FSEBehavior /t REG_DWORD /d 2 /f >nul 2>&1
-echo [%date% %time%] Section 9 : GameDVR/DeliveryOptimization/Messaging OK >> "%LOG%"
+:: Edge — démarrage anticipé et mode arrière-plan désactivés (HKCU non-policy — évite "géré par l'organisation")
+reg add "HKCU\SOFTWARE\Microsoft\Edge\Main" /v StartupBoostEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Edge\Main" /v BackgroundModeEnabled /t REG_DWORD /d 0 /f >nul 2>&1
+echo [%date% %time%] Section 9 : GameDVR/DeliveryOptimization/Messaging/Edge OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 10 — Windows Update (non-destructif — wuauserv conservé)
@@ -310,7 +314,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotificatio
 :: CloudContent — expériences personnalisées / Spotlight / SoftLanding
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailoredExperiencesWithDiagnosticData /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableSoftLanding /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsSpotlightFeatures /t REG_DWORD /d 1 /f >nul 2>&1
+:: DisableWindowsSpotlightFeatures — conservé (fond d'écran verrouillage — ne pas toucher)
 :: CloudContent 25H2 — contenu "optimisé" cloud injecté dans l'interface (nouveau en 25H2)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableCloudOptimizedContent /t REG_DWORD /d 1 /f >nul 2>&1
 
@@ -372,8 +376,6 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" 
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v PreInstalledAppsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v SoftLandingEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v SystemPaneSuggestionsEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v RotatingLockScreenEnabled /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v RotatingLockScreenOverlayEnabled /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-338387Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-338388Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "SubscribedContent-310093Enabled" /t REG_DWORD /d 0 /f >nul 2>&1
@@ -395,9 +397,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsActivate
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsActivateWithVoiceAboveLock /t REG_DWORD /d 2 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy" /v LetAppsAccessBackgroundSpatialPerception /t REG_DWORD /d 2 /f >nul 2>&1
 
-:: Lock Screen — désactiver caméra et diaporama
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" /v NoLockScreenCamera /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Personalization" /v NoLockScreenSlideshow /t REG_DWORD /d 1 /f >nul 2>&1
+:: Lock Screen — aucune modification (fond d'écran, diaporama, Spotlight, caméra : état Windows par défaut)
 
 :: Écriture manuscrite — partage données désactivé
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\TabletPC" /v PreventHandwritingDataSharing /t REG_DWORD /d 1 /f >nul 2>&1
@@ -442,8 +442,16 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\WindowsInkWorkspace" /v AllowWindowsIn
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Peernet" /v Disabled /t REG_DWORD /d 1 /f >nul 2>&1
 :: Tablet PC Input Service — désactiver la collecte données stylet/encre (inutile sur PC de bureau)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\TabletPC" /v PreventHandwritingErrorReports /t REG_DWORD /d 1 /f >nul 2>&1
+:: Biométrie — policy HKLM (complément WbioSrvc=4 désactivé en section 14)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics" /v Enabled /t REG_DWORD /d 0 /f >nul 2>&1
+:: LLMNR — désactiver (réduit broadcast réseau + sécurité : pas de résolution de noms locale non authentifiée)
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" /v EnableMulticast /t REG_DWORD /d 0 /f >nul 2>&1
+:: WPAD — désactiver l'auto-détection de proxy (sécurité : prévient proxy poisoning)
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings\WinHttp" /v DisableWpad /t REG_DWORD /d 1 /f >nul 2>&1
+:: SMBv1 — désactiver explicitement côté serveur (sécurité, déjà off sur 25H2 — belt-and-suspenders)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" /v SMB1 /t REG_DWORD /d 0 /f >nul 2>&1
 
-echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU/Tips/EventLog/InkWorkspace/Peernet OK >> "%LOG%"
+echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU/Tips/EventLog/InkWorkspace/Peernet/LLMNR/SMBv1/WPAD OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 12 — Interface utilisateur (style Windows 10)
@@ -724,6 +732,18 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\p2pimsvc" /v Start /t REG_DWORD 
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\p2psvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\PNRPsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\PNRPAutoReg" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Microsoft Update Health Service — rapporte l'état WU à Microsoft, tente de restaurer composants désactivés
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\uhssvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Program Compatibility Assistant — contacte Microsoft pour collecte de données de compatibilité
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\PcaSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Windows Image Acquisition (WIA) — scanners/caméras TWAIN, inutile sans scanner
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\stisvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Telephony (TAPI) — inutile sur PC de bureau sans modem/RNIS
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\TapiSrv" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Wi-Fi Direct Services Connection Manager — inutile sur PC de bureau fixe
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\WFDSConMgrSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: Remote Desktop Configuration — conditionnel (complément TermService NEED_RDP=0)
+if "%NEED_RDP%"=="0" reg add "HKLM\SYSTEM\CurrentControlSet\Services\SessionEnv" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboot) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -739,6 +759,11 @@ if "%NEED_RDP%"=="0" sc stop TermService >nul 2>&1
 for %%S in (tzautoupdate wmiApSrv SDRSVC spectrum SharedRealitySvc p2pimsvc p2psvc PNRPsvc PNRPAutoReg) do (
   sc query %%S >nul 2>&1 && sc stop %%S >nul 2>&1
 )
+:: Arrêt immédiat des services additionnels
+for %%S in (uhssvc PcaSvc stisvc TapiSrv WFDSConMgrSvc) do (
+  sc query %%S >nul 2>&1 && sc stop %%S >nul 2>&1
+)
+if "%NEED_RDP%"=="0" sc stop SessionEnv >nul 2>&1
 echo [%date% %time%] Section 15 : sc stop envoye aux services listes >> "%LOG%"
 :: Paramètres de récupération DiagTrack — Ne rien faire sur toutes défaillances
 sc failure DiagTrack reset= 0 actions= none/0/none/0/none/0 >nul 2>&1
@@ -798,6 +823,14 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
   echo 0.0.0.0 checkappexec.microsoft.com
   echo 0.0.0.0 inference.location.live.net
   echo 0.0.0.0 location.microsoft.com
+  echo 0.0.0.0 watson.ppe.telemetry.microsoft.com
+  echo 0.0.0.0 umwatson.telemetry.microsoft.com
+  echo 0.0.0.0 config.edge.skype.com
+  echo 0.0.0.0 tile-service.weather.microsoft.com
+  echo 0.0.0.0 outlookads.live.com
+  echo 0.0.0.0 dl.delivery.mp.microsoft.com
+  echo 0.0.0.0 fp.msedge.net
+  echo 0.0.0.0 nexus.officeapps.live.com
 ) >> "%HOSTSFILE%" 2>nul
 
 :: Hosts Adobe — commentés par défaut (BLOCK_ADOBE=1 pour activer)
@@ -922,6 +955,20 @@ schtasks /Query /TN "\Microsoft\Windows\UNP\RunUpdateNotificationMgmt" >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\ApplicationData\CleanupTemporaryState" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\ApplicationData\CleanupTemporaryState" /Disable >nul 2>&1
 :: AppxDeploymentClient — nettoyage apps provisionnées (inutile après setup initial)
 schtasks /Query /TN "\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup" /Disable >nul 2>&1
+:: Service Initiated Healing — tente de restaurer silencieusement les composants WU désactivés
+schtasks /Query /TN "\Microsoft\Windows\WindowsUpdate\sih" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WindowsUpdate\sih" /Disable >nul 2>&1
+:: Retail Demo — nettoyage contenu démo retail hors ligne
+schtasks /Query /TN "\Microsoft\Windows\RetailDemo\CleanupOfflineContent" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\RetailDemo\CleanupOfflineContent" /Disable >nul 2>&1
+:: Work Folders — synchronisation dossiers de travail (fonctionnalité entreprise inutile)
+schtasks /Query /TN "\Microsoft\Windows\Work Folders\Work Folders Logon Synchronization" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Work Folders\Work Folders Logon Synchronization" /Disable >nul 2>&1
+:: Workplace Join — adhésion MDM automatique (inutile hors domaine d'entreprise)
+schtasks /Query /TN "\Microsoft\Windows\Workplace Join\Automatic-Device-Join" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Workplace Join\Automatic-Device-Join" /Disable >nul 2>&1
+:: DUSM — maintenance data usage (complément DusmSvc désactivé section 14)
+schtasks /Query /TN "\Microsoft\Windows\DUSM\dusmtask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\DUSM\dusmtask" /Disable >nul 2>&1
+:: Mobile Provisioning — approvisionnement réseau cellulaire (inutile sur PC de bureau)
+schtasks /Query /TN "\Microsoft\Windows\Management\Provisioning\Cellular" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Management\Provisioning\Cellular" /Disable >nul 2>&1
+:: MDM Provisioning Logon — enrôlement MDM au logon (inutile hors Intune/SCCM)
+schtasks /Query /TN "\Microsoft\Windows\Management\Provisioning\Logon" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Management\Provisioning\Logon" /Disable >nul 2>&1
 echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -930,7 +977,7 @@ echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 :: Note : NEED_RDP et NEED_WEBCAM n'affectent plus la suppression des apps (incluses inconditionnellement)
 :: ═══════════════════════════════════════════════════════════
 
-set "APPLIST=7EE7776C.LinkedInforWindows_3.0.42.0_x64__w1wdnht996qgy Facebook.Facebook MSTeams Microsoft.3DBuilder Microsoft.3DViewer Microsoft.549981C3F5F10 Microsoft.Advertising.Xaml Microsoft.BingNews Microsoft.BingWeather Microsoft.GetHelp Microsoft.Getstarted Microsoft.Messaging Microsoft.Microsoft3DViewer Microsoft.MicrosoftOfficeHub Microsoft.MicrosoftSolitaireCollection Microsoft.MixedReality.Portal Microsoft.NetworkSpeedTest Microsoft.News Microsoft.Office.OneNote Microsoft.Office.Sway Microsoft.OneConnect Microsoft.People Microsoft.Print3D Microsoft.RemoteDesktop Microsoft.SkypeApp Microsoft.Todos Microsoft.Wallet Microsoft.Whiteboard Microsoft.WindowsAlarms Microsoft.WindowsFeedbackHub Microsoft.WindowsMaps Microsoft.WindowsSoundRecorder Microsoft.XboxApp Microsoft.XboxGameOverlay Microsoft.XboxGamingOverlay Microsoft.XboxIdentityProvider Microsoft.XboxSpeechToTextOverlay Microsoft.ZuneMusic Microsoft.ZuneVideo Netflix SpotifyAB.SpotifyMusic king.com.* clipchamp.Clipchamp Microsoft.Copilot Microsoft.BingSearch Microsoft.Windows.DevHome Microsoft.PowerAutomateDesktop Microsoft.WindowsCamera 9WZDNCRFJ4Q7 Microsoft.OutlookForWindows MicrosoftCorporationII.QuickAssist Microsoft.MicrosoftStickyNotes Microsoft.BioEnrollment Microsoft.GamingApp Microsoft.WidgetsPlatformRuntime Microsoft.Windows.NarratorQuickStart Microsoft.Windows.ParentalControls Microsoft.Windows.SecureAssessmentBrowser Microsoft.WindowsCalculator MicrosoftWindows.CrossDevice Microsoft.LinkedIn Microsoft.Teams Microsoft.Xbox.TCUI MicrosoftCorporationII.MicrosoftFamily MicrosoftCorporationII.PhoneLink Microsoft.YourPhone Microsoft.Windows.Ai.Copilot.Provider Microsoft.WindowsRecall Microsoft.RecallApp MicrosoftWindows.Client.WebExperience Microsoft.GamingServices"
+set "APPLIST=7EE7776C.LinkedInforWindows_3.0.42.0_x64__w1wdnht996qgy Facebook.Facebook MSTeams Microsoft.3DBuilder Microsoft.3DViewer Microsoft.549981C3F5F10 Microsoft.Advertising.Xaml Microsoft.BingNews Microsoft.BingWeather Microsoft.GetHelp Microsoft.Getstarted Microsoft.Messaging Microsoft.Microsoft3DViewer Microsoft.MicrosoftOfficeHub Microsoft.MicrosoftSolitaireCollection Microsoft.MixedReality.Portal Microsoft.NetworkSpeedTest Microsoft.News Microsoft.Office.OneNote Microsoft.Office.Sway Microsoft.OneConnect Microsoft.People Microsoft.Print3D Microsoft.RemoteDesktop Microsoft.SkypeApp Microsoft.Todos Microsoft.Wallet Microsoft.Whiteboard Microsoft.WindowsAlarms Microsoft.WindowsFeedbackHub Microsoft.WindowsMaps Microsoft.WindowsSoundRecorder Microsoft.XboxApp Microsoft.XboxGameOverlay Microsoft.XboxGamingOverlay Microsoft.XboxIdentityProvider Microsoft.XboxSpeechToTextOverlay Microsoft.ZuneMusic Microsoft.ZuneVideo Netflix SpotifyAB.SpotifyMusic king.com.* clipchamp.Clipchamp Microsoft.Copilot Microsoft.BingSearch Microsoft.Windows.DevHome Microsoft.PowerAutomateDesktop Microsoft.WindowsCamera 9WZDNCRFJ4Q7 Microsoft.OutlookForWindows MicrosoftCorporationII.QuickAssist Microsoft.MicrosoftStickyNotes Microsoft.BioEnrollment Microsoft.GamingApp Microsoft.WidgetsPlatformRuntime Microsoft.Windows.NarratorQuickStart Microsoft.Windows.ParentalControls Microsoft.Windows.SecureAssessmentBrowser Microsoft.WindowsCalculator MicrosoftWindows.CrossDevice Microsoft.LinkedIn Microsoft.Teams Microsoft.Xbox.TCUI MicrosoftCorporationII.MicrosoftFamily MicrosoftCorporationII.PhoneLink Microsoft.YourPhone Microsoft.Windows.Ai.Copilot.Provider Microsoft.WindowsRecall Microsoft.RecallApp MicrosoftWindows.Client.WebExperience Microsoft.GamingServices Microsoft.WindowsCommunicationsApps Microsoft.Windows.HolographicFirstRun"
 for %%A in (%APPLIST%) do (
     powershell -NonInteractive -NoProfile -Command "Get-AppxPackage -AllUsers -Name %%A | Remove-AppxPackage -ErrorAction SilentlyContinue" >nul 2>&1
     powershell -NonInteractive -NoProfile -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq '%%A' } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue" >nul 2>&1
@@ -966,11 +1013,11 @@ echo [%date% %time%] Section 19b : Explorer redémarre >> "%LOG%"
 :: SECTION 20 — Fin
 :: ═══════════════════════════════════════════════════════════
 echo [%date% %time%] === RESUME === >> "%LOG%"
-echo [%date% %time%] Services : 79+ desactives (Start=4, effectifs apres reboot) >> "%LOG%"
-echo [%date% %time%] Taches planifiees : 86+ desactivees >> "%LOG%"
-echo [%date% %time%] Apps UWP : 72+ supprimees >> "%LOG%"
-echo [%date% %time%] Hosts : 40+ domaines telemetrie bloques >> "%LOG%"
-echo [%date% %time%] Registre : 120+ cles vie privee/telemetrie/perf appliquees >> "%LOG%"
+echo [%date% %time%] Services : 90+ desactives (Start=4, effectifs apres reboot) >> "%LOG%"
+echo [%date% %time%] Taches planifiees : 73+ desactivees >> "%LOG%"
+echo [%date% %time%] Apps UWP : 73+ supprimees >> "%LOG%"
+echo [%date% %time%] Hosts : 57+ domaines telemetrie bloques >> "%LOG%"
+echo [%date% %time%] Registre : 135+ cles vie privee/telemetrie/perf appliquees >> "%LOG%"
 echo [%date% %time%] win11-setup.bat termine avec succes. Reboot recommande. >> "%LOG%"
 echo.
 echo Optimisation terminee. Un redemarrage est recommande pour finaliser.
