@@ -97,6 +97,7 @@ Ces apps ne doivent **jamais** être supprimées, peu importe le profil :
 | `SpotifyAB.SpotifyMusic`                   | Streaming musique tiers           |
 | `clipchamp.Clipchamp`                      | Éditeur vidéo                     |
 | `king.com.*` (joker)                       | Jeux CandyCrush & co              |
+| `microsoft.windowscommunicationsapps`      | Mail et Calendrier Windows        |
 
 > ⚠️ `Microsoft.RemoteDesktop` et `Microsoft.WindowsCamera` sont supprimés inconditionnellement dans la boucle APPLIST — `NEED_RDP` et `NEED_WEBCAM` n'affectent plus la suppression de ces apps (ils contrôlent uniquement `BthAvctpSvc` pour le Bluetooth).
 
@@ -203,6 +204,16 @@ Ces services ne doivent **jamais** être désactivés :
 | `p2psvc`              | Peer Networking Grouping — réseau P2P, inutile sur PC non-serveur |
 | `PNRPsvc`             | Peer Name Resolution Protocol — résolution noms P2P, inutile |
 | `PNRPAutoReg`         | PNRP Machine Name Publication Service — publication nom machine sur PNRP, inutile |
+| `AppReadiness`        | App Readiness — retarde la dispo des apps à l'ouverture de session + télémétrie |
+| `CertPropSvc`         | Certificate Propagation — propagation certs carte à puce, inutile sans smartcard |
+| `EapHost`             | Extensible Authentication Protocol — auth IEEE 802.1X entreprise, inutile en résidentiel |
+| `MSiSCSI`             | Microsoft iSCSI Initiator — stockage NAS entreprise, inutile sur PC de bureau |
+| `PeerDistSvc`         | BranchCache — cache distribué entreprise, inutile |
+| `RpcLocator`          | RPC Locator — service RPC héritage obsolète depuis XP, inutile sous Windows 11 |
+| `WPDBusEnum`          | Portable Device Enumerator — MTP périphériques portables, inutile sur PC de bureau |
+| `SstpSvc`             | Secure Socket Tunneling Protocol — VPN SSTP, inutile sans connexion VPN SSTP configurée |
+| `SessionEnv`          | Remote Desktop Configuration — conditionnel `NEED_RDP=0` |
+| `UmRdpService`        | RD UserMode Port Redirector — conditionnel `NEED_RDP=0` |
 
 > ⚠️ `WSearch` : **NE PAS ajouter à cette liste** — toujours conservé sans exception
 
@@ -277,6 +288,15 @@ Ces services ne doivent **jamais** être désactivés :
 | `\Microsoft\Windows\UNP\RunUpdateNotificationMgmt`                                | Notifications de disponibilité de mise à jour Windows |
 | `\Microsoft\Windows\ApplicationData\CleanupTemporaryState`                        | Nettoyage état temporaire apps — déclenche collecte usage |
 | `\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup`                  | Nettoyage apps provisionnées — inutile après setup |
+| `\Microsoft\Windows\Sysmain\ResPriStaticDbSync`                                   | SysMain — tâche résiduelle même si le service est désactivé |
+| `\Microsoft\Windows\Sysmain\WsSwapAssessmentTask`                                 | SysMain — évaluation swap, service désactivé mais tâche active |
+| `\Microsoft\Windows\Input\LocalUserSyncDataAvailable`                             | Envoie les données de saisie locale à Microsoft |
+| `\Microsoft\Windows\Input\MouseSyncDataAvailable`                                 | Envoie les données d'usage souris à Microsoft |
+| `\Microsoft\Windows\Input\PenSyncDataAvailable`                                   | Envoie les données de stylet à Microsoft — inutile sur PC de bureau |
+| `\Microsoft\Windows\Input\TouchpadSyncDataAvailable`                              | Envoie les données de pavé tactile à Microsoft |
+| `\Microsoft\Windows\Workplace Join\Automatic-Device-Join`                         | Jonction Azure AD automatique — enterprise uniquement |
+| `\Microsoft\Windows\Ras\MobilityManager`                                          | Gestionnaire mobilité RAS/VPN — service RemoteAccess déjà désactivé |
+| `\Microsoft\Windows\NlaSvc\WiFiExpense`                                           | Suivi coût réseau Wi-Fi — billing réseau mesuré inutile |
 
 ---
 
@@ -312,6 +332,17 @@ Ces services ne doivent **jamais** être désactivés :
 | `checkappexec.microsoft.com`        | Vérification exécution apps (SmartScreen réseau) |
 | `inference.location.live.net`       | Inférence de localisation Microsoft |
 | `location.microsoft.com`            | Service de localisation Microsoft |
+| `vortex-win.data.microsoft.com`     | Pipeline Vortex spécifique Windows (endpoint alternatif) |
+| `statsfe1.ws.microsoft.com`         | Stats télémétrie Windows FE endpoint 1 |
+| `statsfe2.ws.microsoft.com`         | Stats télémétrie Windows FE endpoint 2 |
+| `watson.ppe.telemetry.microsoft.com`| Watson PPE — pipeline télémétrie pré-production actif |
+| `df.telemetry.microsoft.com`        | DF telemetry — pipeline données diagnostic |
+| `oca.telemetry.microsoft.com`       | OCA telemetry — Online Crash Analysis (distinct de oca.microsoft.com) |
+| `sqm.df.telemetry.microsoft.com`    | SQM DF — Software Quality Metrics pipeline DF |
+| `i1.services.social.microsoft.com`  | Services sociaux Microsoft — collecte données sociales |
+| `redir.metaservices.microsoft.com`  | Métaservices Microsoft — redirecteur télémétrie |
+| `nexus.officeapps.live.com`         | Télémétrie apps Office live |
+| `officeclient.microsoft.com`        | Client Office télémétrie |
 
 > Adobe (commenté par défaut — activer si pas de logiciel Adobe) :
 > `lmlicenses.wip4.adobe.com`, `lm.licenses.adobe.com`, `practivate.adobe.com`, `activate.adobe.com`
@@ -401,8 +432,15 @@ Ces services ne doivent **jamais** être désactivés :
 | Réseau P2P/PNRP désactivé                | `HKLM\...\Peernet\Disabled=1` — protocoles pair-à-pair inutiles |
 | TCP/IP sécurité — routage source off      | `DisableIPSourceRouting=2` — prévient usurpation d'adresse |
 | TCP/IP sécurité — redirections ICMP off   | `EnableICMPRedirect=0` — prévient attaques de redirection routage |
+| TCP/IP sécurité — protection SYN flood    | `SynAttackProtect=1` + `TcpMaxHalfOpen=100` + `TcpMaxHalfOpenRetried=80` |
 | AutoLogger AppModel désactivé             | Trace cycle de vie apps UWP — inutile en production    |
 | AutoLogger LwtNetLog désactivé            | Trace réseau légère — inutile en production            |
+| Noyau en RAM — `DisablePagingExecutive=1` | Interdit la pagination de l'exécutif noyau/pilotes — gain réactivité sur 1 Go |
+| OOBE privacy screen désactivé             | `DisablePrivacyExperience=1` — pas de wizard confidentialité pour nouveaux comptes |
+| Conseils en ligne désactivés              | `AllowOnlineTips=0` — stoppe les appels réseau depuis Paramètres |
+| GameDVR — flags supplémentaires           | `GameDVR_HonorUserFSEBehaviorMode=1` + `GameDVR_EFSEFeatureFlags=0` |
+| Info-bulles explorateur désactivées       | HKCU `ShowInfoTip=0` — supprime le rendu par survol sur chaque icône |
+| `microsoft.windowscommunicationsapps`     | Mail et Calendrier — supprimé (bloatware) |
 
 ---
 

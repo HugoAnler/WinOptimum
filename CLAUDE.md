@@ -43,22 +43,22 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 | 2 | Point de restauration — **toujours en premier** |
 | 3 | Suppression fichiers Panther (mot de passe en clair 25H2) |
 | 4 | Pagefile fixe 6 Go — vérification 10 Go libres avant |
-| 5 | Mémoire : compression, SysMain/Prefetch désactivés |
-| 6 | Télémétrie / Copilot / Recall / IA 25H2 |
+| 5 | Mémoire : compression, SysMain/Prefetch désactivés, `DisablePagingExecutive=1` (noyau en RAM) |
+| 6 | Télémétrie / Copilot / Recall / IA 25H2 + OOBE privacy + `AllowOnlineTips=0` |
 | 7 | AutoLoggers (DiagTrack, DiagLog, SQMLogger, WiFiSession, AppModel, LwtNetLog) |
 | 8 | Windows Search — désactive web/Bing (WSearch reste actif) |
-| 9 | Edge, GameDVR, Delivery Optimization |
+| 9 | GameDVR (flags complets), Delivery Optimization, messagerie cloud |
 | 10 | Politiques Windows Update |
 | 11 | Vie privée, sécurité, WER, ContentDelivery, AppPrivacy |
 | 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy, Ink Workspace, Peernet, TCP sécurité |
-| 12 | Interface Win10 (taskbar, widgets, menu contextuel, hibernation) |
-| 13 | CPU : `SystemResponsiveness=10`, sécurité TCP/IP (`DisableIPSourceRouting`, `EnableICMPRedirect=0`) |
-| 14 | Services → `Start=4` (79+ services, effectif après reboot) |
+| 12 | Interface Win10 (taskbar, widgets, menu contextuel, hibernation, `ShowInfoTip=0`) |
+| 13 | CPU : `SystemResponsiveness=10`, sécurité TCP/IP (`DisableIPSourceRouting`, `EnableICMPRedirect=0`, protection SYN flood) |
+| 14 | Services → `Start=4` (89+ services, effectif après reboot) |
 | 15 | `sc stop` immédiat + `sc failure DiagTrack` |
-| 16 | Fichier `hosts` — blocage 40+ domaines télémétrie |
+| 16 | Fichier `hosts` — blocage 58+ domaines télémétrie |
 | 17a | GPO AppCompat (`DisableUAR`, `DisableInventory`, `DisablePCA`) |
-| 17 | 55+ tâches planifiées désactivées (`schtasks /Change /Disable`) |
-| 18 | Suppression apps UWP (PowerShell `Remove-AppxPackage`) |
+| 17 | 95+ tâches planifiées désactivées (`schtasks /Change /Disable`) |
+| 18 | Suppression apps UWP (PowerShell `Remove-AppxPackage`) dont `microsoft.windowscommunicationsapps` |
 | 19 | Vidage `C:\Windows\Prefetch\` |
 | 19b | Vérification intégrité système (SFC/DISM) + restart Explorer |
 | 20 | Résumé d'exécution dans le log + log de fin |

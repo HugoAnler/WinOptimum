@@ -37,22 +37,23 @@ Le script est organisé en **20 sections** qui s'exécutent séquentiellement :
 | 2 | Création d'un point de restauration système (obligatoire avant toute modification) |
 | 3 | Suppression des fichiers Panther (`C:\Windows\Panther`) — sécurité : mot de passe admin en clair (25H2) |
 | 4 | Pagefile fixe à 6 Go sur C: (uniquement si ≥ 10 Go d'espace libre) |
-| 5 | Optimisation mémoire : compression activée, Prefetch désactivé, SysMain arrêté, opt-out télémétrie PowerShell |
-| 6 | Zéro télémétrie : 20+ clés registre — Copilot, Recall, DiagTrack, IA 25H2, Spotlight, Cloud Search, collecte Microsoft |
+| 5 | Optimisation mémoire : compression activée, Prefetch désactivé, SysMain arrêté, noyau en RAM (`DisablePagingExecutive`), opt-out télémétrie PowerShell |
+| 6 | Zéro télémétrie : 20+ clés registre — Copilot, Recall, DiagTrack, IA 25H2, Spotlight, Cloud Search, OOBE privacy, conseils en ligne |
 | 7 | AutoLoggers désactivés : DiagTrack, DiagLog, SQMLogger, WiFiSession |
 | 8 | Windows Search : désactivation de la recherche web et Bing (le service WSearch reste actif) |
-| 9 | Edge (démarrage anticipé, arrière-plan), GameDVR désactivé, Delivery Optimization désactivé |
+| 9 | GameDVR désactivé (flags complets), Delivery Optimization désactivé, messagerie cloud |
 | 10 | Politiques Windows Update : redémarrage rapide, réseau mesuré autorisé, notifications conservées |
 | 11 | Vie privée & sécurité : Cortana, ID publicitaire, historique d'activité, géolocalisation, RemoteAssistance, saisie, AutoPlay, contenu cloud, cartes hors ligne, modèle vocal |
 | 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy |
 | 12 | Interface Win10 : barre à gauche, widgets supprimés, Teams/Copilot masqués, menu contextuel classique, "Ce PC" par défaut, Galerie/Réseau masqués, son démarrage off, hibernation off, Fast Startup off |
-| 13 | Priorité CPU : `SystemResponsiveness = 10` |
-| 14 | 65+ services désactivés via registre (`Start=4`) |
+| 13 | Priorité CPU : `SystemResponsiveness = 10`, protection SYN flood TCP/IP |
+| 13b | Config avancée : bypass TPM/RAM, NumLock, SnapAssist, RDP conditionnel |
+| 14 | 89+ services désactivés via registre (`Start=4`) dont AppReadiness, CertPropSvc, EapHost, MSiSCSI, PeerDistSvc, RpcLocator, WPDBusEnum, SstpSvc, SessionEnv, UmRdpService |
 | 15 | Arrêt immédiat des services désactivés + `sc failure DiagTrack` |
-| 16 | Fichier `hosts` : 35+ domaines de télémétrie bloqués en `0.0.0.0` (+ bloc Adobe optionnel) |
+| 16 | Fichier `hosts` : 58+ domaines de télémétrie bloqués en `0.0.0.0` (+ bloc Adobe optionnel) |
 | 17a | GPO AppCompat : `DisableUAR`, `DisableInventory`, `DisablePCA`, `AITEnable=0` |
-| 17 | 48+ tâches planifiées désactivées (télémétrie, CEIP, Recall, Copilot, Xbox, IA 25H2) |
-| 18 | Suppression de 70+ applications bloatware (UWP) via PowerShell |
+| 17 | 95+ tâches planifiées désactivées (télémétrie, CEIP, Recall, Copilot, Xbox, IA 25H2, SysMain, Input sync, Azure AD, RAS) |
+| 18 | Suppression de 73+ applications bloatware (UWP) via PowerShell dont Mail et Calendrier |
 | 19 | Nettoyage du dossier `C:\Windows\Prefetch` |
 | 19b | Vérification intégrité système (SFC/DISM) + restart Explorer |
 | 20 | Résumé d'exécution dans le log + fin du script |
@@ -133,11 +134,11 @@ Sur un Windows 11 déjà installé :
 
 | Catégorie | Quantité |
 |---|---|
-| Clés registre modifiées | 100+ |
-| Services désactivés | 65+ |
-| Tâches planifiées désactivées | 48+ |
-| Applications (UWP) supprimées | 70+ |
-| Domaines de télémétrie bloqués | 35+ |
+| Clés registre modifiées | 130+ |
+| Services désactivés | 89+ |
+| Tâches planifiées désactivées | 95+ |
+| Applications (UWP) supprimées | 73+ |
+| Domaines de télémétrie bloqués | 58+ |
 | Options de configuration | 4 |
 
 ---
