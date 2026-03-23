@@ -168,6 +168,20 @@ Pour pré-intégrer les optimisations dans une image Windows avant déploiement 
 
 ---
 
+## Choix techniques
+
+### Pourquoi pas de boucle pour les clés registre ?
+
+Les 135+ appels `reg add` sont écrits individuellement et non factorisés dans une boucle `for`. Ce choix est délibéré :
+
+- **Chemins et types hétérogènes** — chaque clé a sa propre ruche (`HKLM`, `HKCU`), son propre chemin, son type (`REG_DWORD`, `REG_SZ`, `REG_MULTI_SZ`) et sa valeur. Une boucle nécessiterait un tableau de paramètres plus complexe à maintenir que les appels directs.
+- **Lisibilité et auditabilité** — un script de sécurité/optimisation doit pouvoir être relu ligne par ligne. Chaque `reg add` est explicite : on voit immédiatement ce qui est modifié, où et avec quelle valeur.
+- **Logique conditionnelle** — certaines clés dépendent de variables (`NEED_RDP`, `NEED_BT`, `NEED_PRINTER`). Les imbriquer dans une boucle générique rendrait le flux de contrôle difficile à suivre.
+- **Robustesse** — une erreur sur une clé (chemin inexistant, permission refusée) n'affecte pas les suivantes. Dans une boucle mal structurée, une erreur peut silencieusement interrompre ou fausser les itérations restantes.
+- **Contexte FirstLogonCommands** — l'environnement d'exécution est contraint (pas de WMI, token COM limité). Des constructions batch complexes augmentent le risque d'échec silencieux dans ce contexte.
+
+---
+
 ## Avertissements
 
 - **Point de restauration** : le script en crée un automatiquement en section 2. Ne jamais l'ignorer ou le désactiver.
