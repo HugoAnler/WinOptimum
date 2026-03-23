@@ -487,6 +487,8 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Écrire toute clé sous `HKLM\SOFTWARE\Policies\Microsoft\Edge` | La seule présence de ce chemin affiche **"géré par une organisation"** dans Edge — interdit sans exception. Inclut aussi `HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\*` |
 | Mentionner Claude ou Claude Code dans un fichier du projet    | Outil interne — ne doit pas apparaître dans les fichiers du dépôt |
 | Désactiver l'écran de verrouillage (`NoLockScreen=1`)        | Écran de verrouillage conservé — sécurité utilisateur |
+| Désactiver le diaporama de verrouillage (`NoLockScreenSlideshow=1`) | Fond d'écran et diaporama conservés — choix utilisateur non négociable |
+| Désactiver `RotatingLockScreenEnabled` / `RotatingLockScreenOverlayEnabled` | Fond d'écran rotatif conservé — choix utilisateur non négociable |
 
 ---
 
