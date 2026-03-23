@@ -80,6 +80,11 @@ Le script ne touche jamais aux éléments suivants, considérés comme essentiel
 - `RpcSs` — Remote Procedure Call
 - `PlugPlay` — Plug and Play
 - `WlanSvc` — Wi-Fi
+- `AppXSvc` — Store et winget en dépendent
+- `seclogon` — installeurs tiers en dépendent
+- `TokenBroker` — OneDrive et Edge en dépendent
+- `OneSyncSvc` — OneDrive en dépend
+- `wlidsvc` — Microsoft Account (OneDrive, Edge)
 
 ---
 
@@ -91,8 +96,8 @@ Cinq variables sont disponibles en tête du script pour adapter le comportement 
 |---|---|---|
 | `LOG` | `C:\Windows\Temp\win11-setup.log` | Chemin du fichier de journal |
 | `BLOCK_ADOBE` | `0` | `1` = bloquer les domaines Adobe dans le fichier hosts (désactivé par défaut) |
-| `NEED_RDP` | `0` | `1` = conserver l'application RemoteDesktop (sinon supprimée) |
-| `NEED_WEBCAM` | `0` | `1` = conserver WindowsCamera (sinon supprimée) |
+| `NEED_RDP` | `0` | `1` = conserver les services `TermService`/`SessionEnv` et autoriser les connexions RDP entrantes — *l'application RemoteDesktop est toujours supprimée* |
+| `NEED_WEBCAM` | `0` | Variable définie mais sans effet : `WindowsCamera` est toujours supprimée — réservée pour usage futur |
 | `NEED_BT` | `0` | `1` = conserver le service Bluetooth audio `BthAvctpSvc` (sinon désactivé) |
 | `NEED_PRINTER` | `1` | `0` = désactiver le service Spooler (si aucune imprimante) |
 
