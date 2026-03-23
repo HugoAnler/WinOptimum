@@ -85,7 +85,7 @@ Le script ne touche jamais aux éléments suivants, considérés comme essentiel
 
 ## Configuration
 
-Quatre variables sont disponibles en tête du script pour adapter le comportement selon l'usage :
+Cinq variables sont disponibles en tête du script pour adapter le comportement selon l'usage :
 
 | Variable | Valeur par défaut | Description |
 |---|---|---|
@@ -94,6 +94,7 @@ Quatre variables sont disponibles en tête du script pour adapter le comportemen
 | `NEED_RDP` | `0` | `1` = conserver l'application RemoteDesktop (sinon supprimée) |
 | `NEED_WEBCAM` | `0` | `1` = conserver WindowsCamera (sinon supprimée) |
 | `NEED_BT` | `0` | `1` = conserver le service Bluetooth audio `BthAvctpSvc` (sinon désactivé) |
+| `NEED_PRINTER` | `1` | `0` = désactiver le service Spooler (si aucune imprimante) |
 
 Pour modifier une option, ouvrir `win11-setup.bat` et changer la valeur correspondante dans la section de configuration en tête de fichier.
 
@@ -127,6 +128,15 @@ Sur un Windows 11 déjà installé :
 3. Le script s'exécute silencieusement (aucune invite, aucun redémarrage automatique)
 4. Consulter le log à la fin : `C:\Windows\Temp\win11-setup.log`
 
+### Mode 3 — Optimisation hors-ligne d'une image WIM
+
+Pour pré-intégrer les optimisations dans une image Windows avant déploiement :
+
+1. Ouvrir une invite de commandes en tant qu'administrateur
+2. Exécuter `ApplyScriptWim.cmd` et suivre les invites (répertoire de montage, options)
+3. Le script monte l'image, charge les ruches registre, applique les mêmes réglages que `win11-setup.bat` (mémoire, télémétrie, services, tâches, hosts…), puis démonte proprement
+4. Le log est écrit dans `optiwim.log` à côté du script
+
 ---
 
 ## Statistiques
@@ -138,7 +148,7 @@ Sur un Windows 11 déjà installé :
 | Tâches planifiées désactivées | 73+ |
 | Applications (UWP) supprimées | 73+ |
 | Domaines de télémétrie bloqués | 57+ |
-| Options de configuration | 4 |
+| Options de configuration | 5 |
 
 ---
 
@@ -146,7 +156,8 @@ Sur un Windows 11 déjà installé :
 
 | Fichier | Description |
 |---|---|
-| `win11-setup.bat` | Script principal d'optimisation post-installation (~880 lignes) |
+| `win11-setup.bat` | Script principal d'optimisation post-installation (~1 025 lignes) |
+| `ApplyScriptWim.cmd` | Outil d'optimisation hors-ligne d'une image WIM avant installation (~920 lignes) |
 | `prerequis_WIN11.md` | Document de spécification : règles de conception, listes d'apps/services/tâches, contraintes techniques |
 | `CLAUDE.md` | Fichier de configuration interne — structure du script, règles absolues, conventions |
 
@@ -156,7 +167,7 @@ Sur un Windows 11 déjà installé :
 
 - **Point de restauration** : le script en crée un automatiquement en section 2. Ne jamais l'ignorer ou le désactiver.
 - **Test en VM** : tester sur une machine virtuelle avant tout déploiement en production.
-- **Options conditionnelles** : si vous avez besoin de Bureau à distance, d'une webcam ou du Bluetooth audio, ajuster les variables `NEED_RDP`, `NEED_WEBCAM`, `NEED_BT` avant l'exécution.
+- **Options conditionnelles** : si vous avez besoin de Bureau à distance, d'une webcam, du Bluetooth audio ou d'une imprimante, ajuster les variables `NEED_RDP`, `NEED_WEBCAM`, `NEED_BT`, `NEED_PRINTER` avant l'exécution.
 - **Contexte FirstLogonCommands** : certaines limitations WMI et PowerShell s'appliquent dans ce contexte d'exécution — le script est conçu pour les contourner proprement.
 - **Windows Defender conservé** : aucune modification de la sécurité antivirus n'est effectuée (`SubmitSamplesConsent` jamais à 2).
 - **Vérification intégrité** : SFC et DISM sont exécutés en fin de script pour vérifier l'intégrité du système après les modifications.
