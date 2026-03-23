@@ -33,6 +33,8 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 - **`Win32PrioritySeparation` jamais modifié**
 - **DNS sécurisé Edge jamais modifié** : `BuiltInDnsClientEnabled`, `DnsOverHttpsMode`, `DnsOverHttpsTemplates` — choix utilisateur
 - **Pas de doublons dans la liste de services** : erreur silencieuse dans la boucle `for`
+- **`HKLM\SOFTWARE\Policies\Microsoft\Edge` jamais écrit** : la simple présence de ce chemin affiche "géré par une organisation" dans Edge — interdit sans exception (idem `HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\*`)
+- **Écran de verrouillage jamais modifié** : `NoLockScreen`, `NoLockScreenCamera`, `NoLockScreenSlideshow`, `RotatingLockScreenEnabled`, `DisableWindowsSpotlightFeatures` — fond d'écran et Spotlight conservés à l'état Windows par défaut
 
 ## Structure de `win11-setup.bat`
 
@@ -68,8 +70,8 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 ## Variables de configuration (tête du script)
 
 ```batch
-set NEED_RDP=0      # 1 = conserver Microsoft.RemoteDesktop
-set NEED_WEBCAM=0   # 1 = conserver Microsoft.WindowsCamera
+set NEED_RDP=0      # 1 = conserver TermService/SessionEnv + autoriser RDP (app RemoteDesktop toujours supprimée)
+set NEED_WEBCAM=0   # défini mais sans effet — WindowsCamera toujours supprimée (réservé usage futur)
 set NEED_BT=0       # 1 = conserver BthAvctpSvc (Bluetooth audio)
 set NEED_PRINTER=1  # 0 = désactiver Spooler (pas d'imprimante)
 set BLOCK_ADOBE=0   # 1 = activer le bloc Adobe dans hosts
