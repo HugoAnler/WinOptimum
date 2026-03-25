@@ -190,4 +190,3 @@ Les 135+ appels `reg add` sont écrits individuellement et non factorisés dans 
 - **Contexte FirstLogonCommands** : certaines limitations WMI et PowerShell s'appliquent dans ce contexte d'exécution — le script est conçu pour les contourner proprement.
 - **Windows Defender conservé** : aucune modification de la sécurité antivirus n'est effectuée (`SubmitSamplesConsent` jamais à 2).
 - **Vérification intégrité** : SFC et DISM sont exécutés en fin de script pour vérifier l'intégrité du système après les modifications.
-- **Outil de développement** : ne jamais mentionner Claude ou Claude Code dans les fichiers du projet.
