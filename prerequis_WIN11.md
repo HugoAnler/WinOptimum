@@ -403,6 +403,7 @@ Ces services ne doivent **jamais** être désactivés :
 | Windows Search — cloud désactivé          | `AllowCloudSearch=0` + `ConnectedSearchUseWeb=0` + HKLM Policy |
 | OneDrive auto-start désactivé             | `DisableFileSyncNGSC=1` (HKLM Policy OneDrive)         |
 | Windows Spotlight                         | **Conservé** — fond d'écran verrouillage = état Windows par défaut, ne pas toucher |
+| Centre de notifications (Action Center)   | **Conservé** — `DisableNotificationCenter` jamais écrit                             |
 | GameDVR — fullscreen optimizations off    | HKCU `GameDVR_FSEBehavior=2`                            |
 | Remote Assistance — contrôle total bloqué | `fAllowFullControl=0`                                   |
 | WER — pas d'UI                            | `DontShowUI=1`                                          |
