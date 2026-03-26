@@ -483,7 +483,9 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v La
 reg add "HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /ve /t REG_SZ /d "" /f >nul 2>&1
 
 :: Galerie masquée dans l'explorateur — HKCU obligatoire (namespace Shell)
+:: CLSID actif 25H2 : IsPinnedToNameSpaceTree + HiddenByDefault pour masquage complet
 reg add "HKCU\Software\Classes\CLSID\{e88865ea-0009-4384-87f5-7b8f32a3d6d5}" /v "System.IsPinnedToNameSpaceTree" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\Software\Classes\CLSID\{e88865ea-0009-4384-87f5-7b8f32a3d6d5}" /v "HiddenByDefault" /t REG_DWORD /d 1 /f >nul 2>&1
 
 :: Réseau masqué dans l'explorateur (HKLM)
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Desktop\NameSpace\DelegateFolders\{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}" /v "NonEnum" /t REG_DWORD /d 1 /f >nul 2>&1
