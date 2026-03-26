@@ -773,6 +773,8 @@ echo [%date% %time%] Section 15 : sc failure DiagTrack (aucune action sur defail
 :: ═══════════════════════════════════════════════════════════
 set HOSTSFILE=%windir%\System32\drivers\etc\hosts
 copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
+:: Vérification anti-doublon : n'ajouter que si le marqueur est absent
+findstr /C:"Telemetry blocks - win11-setup" "%HOSTSFILE%" >nul 2>&1 || (
 (
   echo # Telemetry blocks - win11-setup
   echo 0.0.0.0 telemetry.microsoft.com
@@ -831,8 +833,6 @@ copy "%HOSTSFILE%" "%HOSTSFILE%.bak" >nul 2>&1
   echo 0.0.0.0 fp.msedge.net
   echo 0.0.0.0 nexus.officeapps.live.com
 ) >> "%HOSTSFILE%" 2>nul
-
-:: Hosts Adobe — commentés par défaut (BLOCK_ADOBE=1 pour activer)
 if "%BLOCK_ADOBE%"=="1" (
   (
     echo 0.0.0.0 lmlicenses.wip4.adobe.com
@@ -840,6 +840,10 @@ if "%BLOCK_ADOBE%"=="1" (
     echo 0.0.0.0 practivate.adobe.com
     echo 0.0.0.0 activate.adobe.com
   ) >> "%HOSTSFILE%" 2>nul
+)
+)
+):: fin anti-doublon
+if "%BLOCK_ADOBE%"=="1" (
   echo [%date% %time%] Section 16 : Hosts OK (Adobe BLOQUE) >> "%LOG%"
 ) else (
   echo [%date% %time%] Section 16 : Hosts OK (Adobe commente par defaut) >> "%LOG%"
