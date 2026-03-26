@@ -165,7 +165,6 @@ Ces services ne doivent **jamais** être désactivés :
 | `PushToInstall`       | Microsoft pousse des apps à distance                |
 | `SysMain`             | Superfetch — désactivé inconditionnellement (1 Go RAM) |
 | `FontCache`           | Cache de polices — consomme RAM inutilement         |
-| `cbdhsvc`             | Cloud Clipboard — envoie le presse-papiers à Microsoft |
 | `WpnService`          | Push Notifications system (livraison de pubs MS)    |
 | `WpnUserService`      | Push Notifications user service                     |
 | `CDPUserSvc`          | Connected Devices Platform user (cross-device sync) |
