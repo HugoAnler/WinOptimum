@@ -353,8 +353,9 @@ echo [%date% %time%] Section 11 : Vie privee/Securite/WER/InputPerso/CloudConten
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v PublishUserActivities /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v UploadUserActivities /t REG_DWORD /d 0 /f >nul 2>&1
 
-:: Cloud Clipboard et CDP Nearby Share désactivés
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v AllowClipboardHistory /t REG_DWORD /d 0 /f >nul 2>&1
+:: Clipboard local activé (Win+V), cloud/cross-device désactivé
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v AllowClipboardHistory /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Clipboard" /v EnableClipboardHistory /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v AllowCrossDeviceClipboard /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v DisableCdp /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\CDP" /v RomeSdkChannelUserAuthzPolicy /t REG_DWORD /d 0 /f >nul 2>&1
@@ -461,8 +462,9 @@ echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/
 reg add "HKCU\Control Panel\Desktop" /v VisualFXSetting /t REG_DWORD /d 2 /f >nul 2>&1
 reg add "HKCU\Control Panel\Desktop" /v MinAnimate /t REG_SZ /d 0 /f >nul 2>&1
 
-:: Barre des tâches : alignement gauche (HKLM policy)
+:: Barre des tâches : alignement gauche (HKLM policy + HKCU direct)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v TaskbarAlignment /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAl /t REG_DWORD /d 0 /f >nul 2>&1
 
 :: Widgets désactivés (HKLM policy)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Dsh" /v AllowNewsAndInterests /t REG_DWORD /d 0 /f >nul 2>&1
@@ -575,6 +577,7 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\OperationStatus
 reg load HKU\DefaultUser C:\Users\Default\NTUSER.DAT >nul 2>&1
 reg add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer" /v HubMode /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v LaunchTo /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v TaskbarAl /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /t REG_DWORD /d 2 /f >nul 2>&1
 reg unload HKU\DefaultUser >nul 2>&1
 echo [%date% %time%] Section 12 : Interface OK >> "%LOG%"
