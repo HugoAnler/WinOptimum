@@ -11,7 +11,6 @@ Script de post-installation Windows 11 25H2 pour systèmes à 1 Go de RAM. S'ex�
 | Fichier | Rôle |
 |---|---|
 | `win11-setup.bat` | Script principal — **tout** le code d'optimisation post-installation est ici |
-| `ApplyScriptWim.cmd` | Outil d'optimisation hors-ligne d'une image WIM (avant installation) — monte les ruches registre et applique les mêmes réglages |
 | `prerequis_WIN11.md` | **Document de référence obligatoire** — lire en premier avant toute modification |
 
 Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dépôt). Ne jamais y mettre de clés registre.
