@@ -401,7 +401,7 @@ Ces services ne doivent **jamais** être désactivés :
 | SIUF — période à zéro                     | HKCU `PeriodInNanoSeconds=0`                            |
 | Search HKCU Bing/Cortana désactivé        | `BingSearchEnabled=0` + `CortanaConsent=0` (per-user)   |
 | Windows Search — cloud désactivé          | `AllowCloudSearch=0` + `ConnectedSearchUseWeb=0` + HKLM Policy |
-| OneDrive auto-start désactivé             | `DisableFileSyncNGSC=1` (HKLM Policy OneDrive)         |
+| OneDrive conservé                         | `DisableFileSyncNGSC` non écrit — bloquait OneDrive entièrement via GPO, démarrage géré par l'utilisateur |
 | Windows Spotlight                         | **Conservé** — fond d'écran verrouillage = état Windows par défaut, ne pas toucher |
 | Centre de notifications (Action Center)   | **Conservé** — `DisableNotificationCenter` jamais écrit                             |
 | Presse-papiers Win+V                      | **Activé** — historique local (`AllowClipboardHistory=1` + HKCU `EnableClipboardHistory=1`), synchronisation cloud désactivée |
