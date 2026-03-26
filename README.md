@@ -73,9 +73,10 @@ Le script ne touche jamais aux éléments suivants, considérés comme essentiel
 - ScreenSketch (capture d'écran Win+Shift+S)
 - VCLibs, UI.Xaml, NET.Native (runtimes)
 
-**Fonctionnalités UI conservées :**
+**Fonctionnalités UI conservées / activées :**
 - Centre de notifications (Action Center)
 - Écran de verrouillage et Spotlight
+- Presse-papiers Win+V (historique local activé — synchronisation cloud désactivée)
 
 **Services toujours actifs :**
 - `WSearch` — Windows Search (indexation)

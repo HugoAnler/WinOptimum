@@ -404,6 +404,7 @@ Ces services ne doivent **jamais** être désactivés :
 | OneDrive auto-start désactivé             | `DisableFileSyncNGSC=1` (HKLM Policy OneDrive)         |
 | Windows Spotlight                         | **Conservé** — fond d'écran verrouillage = état Windows par défaut, ne pas toucher |
 | Centre de notifications (Action Center)   | **Conservé** — `DisableNotificationCenter` jamais écrit                             |
+| Presse-papiers Win+V                      | **Activé** — historique local (`AllowClipboardHistory=1` + HKCU `EnableClipboardHistory=1`), synchronisation cloud désactivée |
 | GameDVR — fullscreen optimizations off    | HKCU `GameDVR_FSEBehavior=2`                            |
 | Remote Assistance — contrôle total bloqué | `fAllowFullControl=0`                                   |
 | WER — pas d'UI                            | `DontShowUI=1`                                          |
