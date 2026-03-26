@@ -53,7 +53,7 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 | 9 | GameDVR, Delivery Optimization, Edge démarrage anticipé/arrière-plan (HKCU) |
 | 10 | Politiques Windows Update |
 | 11 | Vie privée, sécurité, WER, ContentDelivery, AppPrivacy |
-| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy, Ink Workspace, Peernet, TCP sécurité, LLMNR, WPAD, SMBv1, Biométrie |
+| 11b | CDP, Clipboard (Win+V local activé, cloud désactivé), ContentDeliveryManager, HKCU privacy, Ink Workspace, Peernet, TCP sécurité, LLMNR, WPAD, SMBv1, Biométrie |
 | 12 | Interface Win10 (taskbar, widgets, menu contextuel, hibernation) |
 | 13 | CPU : `SystemResponsiveness=10`, PowerThrottling off, sécurité TCP/IP (`DisableIPSourceRouting`, `EnableICMPRedirect=0`) |
 | 13b | Config avancée : bypass TPM/RAM, PasswordLess, NumLock, Snap Assist, menu alimentation, RDP conditionnel |

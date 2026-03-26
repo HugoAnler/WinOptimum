@@ -406,7 +406,7 @@ Ces services ne doivent **jamais** être désactivés :
 | GameDVR — fullscreen optimizations off    | HKCU `GameDVR_FSEBehavior=2`                            |
 | Remote Assistance — contrôle total bloqué | `fAllowFullControl=0`                                   |
 | WER — pas d'UI                            | `DontShowUI=1`                                          |
-| Cloud Clipboard désactivé                 | `AllowClipboardHistory=0` + `AllowCrossDeviceClipboard=0` |
+| Presse-papiers local activé (Win+V)       | `AllowClipboardHistory=1` (HKLM policy) + HKCU `EnableClipboardHistory=1` — cloud/cross-device toujours désactivé (`AllowCrossDeviceClipboard=0`) |
 | CDP / Nearby Share désactivé              | `DisableCdp=1` — bloque cross-device                    |
 | NCSI — stop probes msftconnecttest.com    | `NoActiveProbe=1`                                       |
 | Wi-Fi Sense — auto-connect désactivé      | `AutoConnectAllowedOEM=0`                               |
