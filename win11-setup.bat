@@ -577,6 +577,9 @@ reg add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer" /v 
 reg add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v LaunchTo /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Feeds" /v ShellFeedsTaskbarViewMode /t REG_DWORD /d 2 /f >nul 2>&1
 reg unload HKU\DefaultUser >nul 2>&1
+:: Regrouper par — désactivé (reset ShellBags : vues per-dossier reconstruites sans grouping)
+reg delete "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags" /f >nul 2>&1
+reg delete "HKCU\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\BagMRU" /f >nul 2>&1
 echo [%date% %time%] Section 12 : Interface OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
