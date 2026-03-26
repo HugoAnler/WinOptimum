@@ -35,6 +35,10 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 - **Pas de doublons dans la liste de services** : erreur silencieuse dans la boucle `for`
 - **`HKLM\SOFTWARE\Policies\Microsoft\Edge` jamais écrit** : la simple présence de ce chemin affiche "géré par une organisation" dans Edge — interdit sans exception (idem `HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\*`)
 - **Écran de verrouillage jamais modifié** : `NoLockScreen`, `NoLockScreenCamera`, `NoLockScreenSlideshow`, `RotatingLockScreenEnabled`, `DisableWindowsSpotlightFeatures` — fond d'écran et Spotlight conservés à l'état Windows par défaut
+- **Centre de notifications conservé** : `DisableNotificationCenter` (HKCU policy) interdit — clé sans effet réel, centre de notifications laissé intact
+- **Alignement menu démarrer via HKLM uniquement** : `HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer` `TaskbarAlignment=0` — ne pas utiliser `HKCU TaskbarAl`
+- **`DisableFileSyncNGSC` formellement interdit** : `HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive` — bloque OneDrive entièrement au niveau système, empêche même le lancement manuel — ne jamais écrire cette clé
+- **`cbdhsvc` jamais désactivé** : service requis pour l'historique du presse-papiers Win+V local — ne pas l'ajouter à la liste des services ni à la boucle `for`
 
 ## Structure de `win11-setup.bat`
 
@@ -53,7 +57,7 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 | 9 | GameDVR, Delivery Optimization, Edge démarrage anticipé/arrière-plan (HKCU) |
 | 10 | Politiques Windows Update |
 | 11 | Vie privée, sécurité, WER, ContentDelivery, AppPrivacy |
-| 11b | CDP, Cloud Clipboard, ContentDeliveryManager, HKCU privacy, Ink Workspace, Peernet, TCP sécurité, LLMNR, WPAD, SMBv1, Biométrie |
+| 11b | CDP, Clipboard (Win+V local activé, cloud désactivé), ContentDeliveryManager, HKCU privacy, Ink Workspace, Peernet, TCP sécurité, LLMNR, WPAD, SMBv1, Biométrie |
 | 12 | Interface Win10 (taskbar, widgets, menu contextuel, hibernation) |
 | 13 | CPU : `SystemResponsiveness=10`, PowerThrottling off, sécurité TCP/IP (`DisableIPSourceRouting`, `EnableICMPRedirect=0`) |
 | 13b | Config avancée : bypass TPM/RAM, PasswordLess, NumLock, Snap Assist, menu alimentation, RDP conditionnel |
