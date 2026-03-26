@@ -922,8 +922,6 @@ schtasks /Query /TN "\Microsoft\Windows\Recall\RecallScreenshotTask" >nul 2>&1 &
 schtasks /Query /TN "\Microsoft\Windows\Recall\RecallMaintenanceTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Recall\RecallMaintenanceTask" /Disable >nul 2>&1
 :: Windows Push Notifications cleanup
 schtasks /Query /TN "\Microsoft\Windows\WPN\PushNotificationCleanup" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WPN\PushNotificationCleanup" /Disable >nul 2>&1
-:: BITS cache maintenance
-schtasks /Query /TN "\Microsoft\Windows\BITS\CacheMaintenanceTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\BITS\CacheMaintenanceTask" /Disable >nul 2>&1
 :: Diagnostic recommandations scanner
 schtasks /Query /TN "\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner" /Disable >nul 2>&1
 :: Data Integrity Scan — rapport disque
