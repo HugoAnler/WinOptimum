@@ -35,6 +35,8 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 - **Pas de doublons dans la liste de services** : erreur silencieuse dans la boucle `for`
 - **`HKLM\SOFTWARE\Policies\Microsoft\Edge` jamais écrit** : la simple présence de ce chemin affiche "géré par une organisation" dans Edge — interdit sans exception (idem `HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\*`)
 - **Écran de verrouillage jamais modifié** : `NoLockScreen`, `NoLockScreenCamera`, `NoLockScreenSlideshow`, `RotatingLockScreenEnabled`, `DisableWindowsSpotlightFeatures` — fond d'écran et Spotlight conservés à l'état Windows par défaut
+- **Centre de notifications conservé** : `DisableNotificationCenter` (HKCU policy) interdit — clé sans effet réel, centre de notifications laissé intact
+- **Alignement menu démarrer via HKLM uniquement** : `HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer` `TaskbarAlignment=0` — ne pas utiliser `HKCU TaskbarAl`
 
 ## Structure de `win11-setup.bat`
 

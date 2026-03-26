@@ -383,7 +383,7 @@ Ces services ne doivent **jamais** être désactivés :
 | Son au démarrage désactivé                | `DisableStartupSound=1`                                 |
 | AutoPlay / AutoRun désactivés             | Sécurité USB — pas d'exécution automatique              |
 | Dossier Prefetch vidé au démarrage        | Suppression contenu `C:\Windows\Prefetch\`              |
-| Interface Win10 : barre gauche            | **HKLM** `Policies\...\Explorer` `TaskbarAlignment=0`  |
+| Interface Win10 : barre gauche            | **HKLM** `Policies\...\Explorer` `TaskbarAlignment=0` — ne pas utiliser `HKCU TaskbarAl` (HKLM seul, policy prioritaire) |
 | Interface Win10 : sans Widgets            | **HKLM** `Policies\Microsoft\Dsh` `AllowNewsAndInterests=0` |
 | Interface Win10 : sans Teams barre        | **HKLM** `Policies\...\Windows Chat` `ChatIcon=2`       |
 | Interface Win10 : sans Copilot barre      | Couvert par `TurnOffWindowsCopilot=1` (HKLM déjà présent) |
@@ -487,6 +487,8 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Écrire toute clé sous `HKLM\SOFTWARE\Policies\Microsoft\Edge` | La seule présence de ce chemin affiche **"géré par une organisation"** dans Edge — interdit sans exception. Inclut aussi `HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge\*` |
 | Mentionner Claude ou Claude Code dans un fichier du projet    | Outil interne — ne doit pas apparaître dans les fichiers du dépôt |
 | Toute modification de l'écran de verrouillage (`NoLockScreen`, `NoLockScreenCamera`, `NoLockScreenSlideshow`, `RotatingLockScreenEnabled`, `RotatingLockScreenOverlayEnabled`, `DisableWindowsSpotlightFeatures`) | Écran de verrouillage, fond d'écran et Spotlight conservés à l'état Windows par défaut — non négociable |
+| `DisableNotificationCenter` (HKCU policy)  | Centre de notifications conservé — clé HKCU sans effet réel sur les policy GPO, ne jamais écrire |
+| `HKCU TaskbarAl` pour l'alignement du menu démarrer | Alignement géré uniquement via `HKLM TaskbarAlignment=0` — ne pas doubler avec HKCU |
 
 ---
 
