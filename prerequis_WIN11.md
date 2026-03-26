@@ -490,6 +490,8 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Mentionner Claude ou Claude Code dans un fichier du projet    | Outil interne — ne doit pas apparaître dans les fichiers du dépôt |
 | Toute modification de l'écran de verrouillage (`NoLockScreen`, `NoLockScreenCamera`, `NoLockScreenSlideshow`, `RotatingLockScreenEnabled`, `RotatingLockScreenOverlayEnabled`, `DisableWindowsSpotlightFeatures`) | Écran de verrouillage, fond d'écran et Spotlight conservés à l'état Windows par défaut — non négociable |
 | `DisableNotificationCenter` (HKCU policy)  | Centre de notifications conservé — clé HKCU sans effet réel sur les policy GPO, ne jamais écrire |
+| `DisableFileSyncNGSC=1` (`HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive`) | **Formellement interdit** — bloque OneDrive entièrement au niveau système, empêche même le lancement manuel par l'utilisateur |
+| Désactiver `cbdhsvc`                       | Service requis pour Win+V (historique presse-papiers local) — ne jamais ajouter à la liste des services ni à la boucle `for` |
 | `HKCU TaskbarAl` pour l'alignement du menu démarrer | Alignement géré uniquement via `HKLM TaskbarAlignment=0` — ne pas doubler avec HKCU |
 
 ---
