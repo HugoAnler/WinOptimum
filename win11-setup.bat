@@ -502,7 +502,7 @@ powercfg /h off >nul 2>&1
 
 :: Explorateur — divers (HKLM)
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoResolveTrack /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoRecentDocsHistory /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoRecentDocsHistory /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoInstrumentation /t REG_DWORD /d 1 /f >nul 2>&1
 
 :: Copilot — masquer le bouton dans la barre des tâches (HKCU per-user)
@@ -510,7 +510,7 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Sh
 
 :: Démarrer — arrêter le suivi programmes et documents récents
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackProgs /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackDocs /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v Start_TrackDocs /t REG_DWORD /d 1 /f >nul 2>&1
 
 :: Démarrer — masquer apps récemment ajoutées (HKLM policy)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v HideRecentlyAddedApps /t REG_DWORD /d 1 /f >nul 2>&1
@@ -551,13 +551,13 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Chat" /v ConfigureChat
 :: Explorateur — HubMode HKLM + HKCU (mode allégé sans panneau de droite)
 reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer" /v HubMode /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v HubMode /t REG_DWORD /d 1 /f >nul 2>&1
-:: Explorateur — masquer fréquents, récents, Cloud, suggestions, effacer docs récents à la fermeture
+:: Explorateur — masquer fréquents, activer fichiers récents, masquer Cloud/suggestions, ne pas effacer à la fermeture
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ShowFrequent /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ShowRecent /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ShowRecent /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v DisableSearchBoxSuggestions /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ShowCloudFilesInQuickAccess /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ShowOrHideMostUsedApps /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ClearRecentDocsOnExit /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKLM\Software\Microsoft\Windows\CurrentVersion\Explorer" /v ClearRecentDocsOnExit /t REG_DWORD /d 0 /f >nul 2>&1
 :: Galerie explorateur — CLSID alternatif (e0e1c = ancienne GUID W11 22H2)
 reg add "HKCU\Software\Classes\CLSID\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}" /v HiddenByDefault /t REG_DWORD /d 1 /f >nul 2>&1
 :: Visuel — lissage police, pas de fenêtres opaques pendant déplacement, transparence off
