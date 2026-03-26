@@ -171,8 +171,7 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\UserProfileEngagement" /
 reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\phoneCall" /v Value /t REG_SZ /d Deny /f >nul 2>&1
 :: Recherche cloud désactivée
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudSearch /t REG_DWORD /d 0 /f >nul 2>&1
-:: OneDrive auto-start désactivé
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v DisableFileSyncNGSC /t REG_DWORD /d 1 /f >nul 2>&1
+:: OneDrive — policy non écrite (conservé, démarrage géré par l'utilisateur)
 :: Windows Spotlight — conservé (fond d'écran verrouillage, choix utilisateur — ne pas toucher)
 :: Windows Defender — SubmitSamplesConsent déjà défini à 0 via registre (clés Spynet ci-dessus)
 :: Ne pas utiliser Set-MpPreference -SubmitSamplesConsent 2 : affaiblit Defender (interdit par prerequis)
