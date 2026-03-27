@@ -231,20 +231,9 @@ reg add "HKCU\SOFTWARE\Microsoft\Edge\Main" /v BackgroundModeEnabled /t REG_DWOR
 echo [%date% %time%] Section 9 : GameDVR/DeliveryOptimization/Messaging/Edge OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
-:: SECTION 10 — Windows Update (non-destructif — wuauserv conservé)
+:: SECTION 10 — Windows Update (intouché — règle absolue)
 :: ═══════════════════════════════════════════════════════════
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v NoAutoRebootWithLoggedOnUsers /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v AllowAutoWindowsUpdateDownloadOverMeteredNetwork /t REG_DWORD /d 1 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v RestartNotificationsAllowed2 /t REG_DWORD /d 1 /f >nul 2>&1
-:: Windows Update — activer mises à jour expédiées (livraison accélérée des correctifs critiques)
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Settings" /v IsExpedited /t REG_DWORD /d 1 /f >nul 2>&1
-:: Innovation continue — innovation de canal rapide optée
-reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Settings" /v IsContinuousInnovationOptedIn /t REG_DWORD /d 1 /f >nul 2>&1
-:: Windows Store — téléchargement auto des mises à jour d'apps
-reg add "HKLM\SOFTWARE\Policies\Microsoft\WindowsStore" /v AutoDownload /t REG_DWORD /d 4 /f >nul 2>&1
-:: AU — options (4 = télécharger et notifier pour installation)
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v AUOptions /t REG_DWORD /d 4 /f >nul 2>&1
-echo [%date% %time%] Section 10 : Windows Update policies OK >> "%LOG%"
+echo [%date% %time%] Section 10 : Windows Update conserve (non touche) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 11 — Vie privée / Sécurité / Localisations
@@ -893,8 +882,7 @@ schtasks /Query /TN "\Microsoft\Windows\Flighting\OneSettings\RefreshCache" >nul
 schtasks /Query /TN "\Microsoft\Windows\Maintenance\WinSAT" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Maintenance\WinSAT" /Disable >nul 2>&1
 :: SQM — Software Quality Metrics
 schtasks /Query /TN "\Microsoft\Windows\PI\Sqm-Tasks" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\PI\Sqm-Tasks" /Disable >nul 2>&1
-:: UpdateOrchestrator — rapport policy télémétrie
-schtasks /Query /TN "\Microsoft\Windows\UpdateOrchestrator\Report policies" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\UpdateOrchestrator\Report policies" /Disable >nul 2>&1
+:: UpdateOrchestrator — conservé (règle absolue Windows Update)
 :: CloudExperienceHost — onboarding IA/OOBE
 schtasks /Query /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" /Disable >nul 2>&1
 :: Windows Store telemetry
