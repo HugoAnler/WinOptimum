@@ -28,7 +28,7 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 - **PowerShell** : toujours avec `-NonInteractive` + `try/catch` — sinon exit code ≠ 0 rompt le batch parent
 - **Registre en priorité** : toujours `reg add` plutôt que PowerShell/WMI quand la clé existe
 - **Pas de `PAUSE` ni `shutdown /r`** : script silencieux
-- **`SubmitSamplesConsent` jamais à 2** : affaiblit Defender
+- **Windows Update et Windows Defender intouchables** : aucune clé registre, aucun service, aucune tâche planifiée, aucune entrée hosts ne doit toucher de près ou de loin à Windows Update (`wuauserv`, `BITS`, `uhssvc`, `WaaSMedic`, `sih`, `UpdateOrchestrator`, clés `WindowsUpdate\*`) ni à Windows Defender (`WinDefend`, `SecurityHealthService`, `wscsvc`, clés `Windows Defender\*`, `SubmitSamplesConsent`, `SpynetReporting`) — règle absolue sans exception
 - **`Win32PrioritySeparation` jamais modifié**
 - **DNS sécurisé Edge jamais modifié** : `BuiltInDnsClientEnabled`, `DnsOverHttpsMode`, `DnsOverHttpsTemplates` — choix utilisateur
 - **Pas de doublons dans la liste de services** : erreur silencieuse dans la boucle `for`

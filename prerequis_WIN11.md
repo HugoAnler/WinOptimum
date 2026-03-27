@@ -480,6 +480,7 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Désactiver `OneSyncSvc`               | OneDrive en dépend — jamais désactivé                         |
 | Désactiver `wlidsvc`                  | Microsoft Account Sign-in Assistant — OneDrive et Edge en dépendent |
 | Omettre la suppression fichiers Panther | Mot de passe admin exposé en clair — risque sécurité        |
+| **Toucher Windows Update ou Windows Defender sous quelque prétexte que ce soit** | **RÈGLE ABSOLUE** — aucune clé registre (`WindowsUpdate\*`, `Windows Defender\*`, `SubmitSamplesConsent`, `SpynetReporting`), aucun service (`wuauserv`, `BITS`, `uhssvc`, `WaaSMedic`, `WinDefend`, `SecurityHealthService`, `wscsvc`), aucune tâche planifiée (`\WindowsUpdate\*`, `\WaaSMedic\*`, `\Windows Defender\*`), aucune entrée hosts ne doit affecter Windows Update ni Windows Defender — sans exception |
 | `Win32_ComputerSystem.Put()` / `Set-WmiInstance` / `wmic pagefileset` dans le BAT | Token COM/WMI absent en `FirstLogonCommands` — arrêt silencieux du script — utiliser clés registre |
 | Commande PowerShell sans `-NonInteractive` + `try/catch`     | Exception PS propage exit code ≠ 0 → arrêt silencieux du BAT parent  |
 | **Mettre des clés de registre dans `autounattend.xml`**  | **Le XML ne contient que le strict minimum setup — tout le registre est dans le .bat** |
