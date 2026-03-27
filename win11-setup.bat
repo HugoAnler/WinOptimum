@@ -134,9 +134,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v DisableWinMLFeat
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot" /v DisableCopilotService /t REG_DWORD /d 1 /f >nul 2>&1
 :: SIUF — période à zéro (complément NumberOfSIUFInPeriod=0)
 reg add "HKCU\SOFTWARE\Microsoft\Siuf\Rules" /v PeriodInNanoSeconds /t REG_DWORD /d 0 /f >nul 2>&1
-:: Windows Defender — désactiver envoi d'échantillons et rapports réseau (CRITIQUE)
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v SubmitSamplesConsent /t REG_DWORD /d 0 /f >nul 2>&1
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender\Spynet" /v SpynetReporting /t REG_DWORD /d 0 /f >nul 2>&1
+:: Windows Defender — non touché (SubmitSamplesConsent et SpynetReporting conservés à l'état Windows par défaut)
 :: DataCollection — clés complémentaires à AllowTelemetry=0 (redondantes mais couverture maximale)
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection" /v MaxTelemetryAllowed /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v LimitDiagnosticLogCollection /t REG_DWORD /d 1 /f >nul 2>&1
@@ -173,8 +171,7 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudSearch /t REG_DWORD /d 0 /f >nul 2>&1
 :: OneDrive — policy non écrite (conservé, démarrage géré par l'utilisateur)
 :: Windows Spotlight — conservé (fond d'écran verrouillage, choix utilisateur — ne pas toucher)
-:: Windows Defender — SubmitSamplesConsent déjà défini à 0 via registre (clés Spynet ci-dessus)
-:: Ne pas utiliser Set-MpPreference -SubmitSamplesConsent 2 : affaiblit Defender (interdit par prerequis)
+:: Windows Defender — aucune clé écrite, conservé intégralement à l'état Windows par défaut
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP/Defender/DataCollection OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -239,8 +236,6 @@ echo [%date% %time%] Section 9 : GameDVR/DeliveryOptimization/Messaging/Edge OK 
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" /v NoAutoRebootWithLoggedOnUsers /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v AllowAutoWindowsUpdateDownloadOverMeteredNetwork /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" /v RestartNotificationsAllowed2 /t REG_DWORD /d 1 /f >nul 2>&1
-:: Windows Update — désactiver Microsoft Update Service (mises à jour produits Office via WU)
-reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Settings" /v AllowMUUpdateService /t REG_DWORD /d 0 /f >nul 2>&1
 :: Windows Update — activer mises à jour expédiées (livraison accélérée des correctifs critiques)
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Settings" /v IsExpedited /t REG_DWORD /d 1 /f >nul 2>&1
 :: Innovation continue — innovation de canal rapide optée
@@ -728,8 +723,6 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\p2pimsvc" /v Start /t REG_DWORD 
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\p2psvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\PNRPsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\PNRPAutoReg" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
-:: Microsoft Update Health Service — rapporte l'état WU à Microsoft, tente de restaurer composants désactivés
-reg add "HKLM\SYSTEM\CurrentControlSet\Services\uhssvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 :: Program Compatibility Assistant — contacte Microsoft pour collecte de données de compatibilité
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\PcaSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 :: Windows Image Acquisition (WIA) — scanners/caméras TWAIN, inutile sans scanner
@@ -756,7 +749,7 @@ for %%S in (tzautoupdate wmiApSrv SDRSVC spectrum SharedRealitySvc p2pimsvc p2ps
   sc query %%S >nul 2>&1 && sc stop %%S >nul 2>&1
 )
 :: Arrêt immédiat des services additionnels
-for %%S in (uhssvc PcaSvc stisvc TapiSrv WFDSConMgrSvc) do (
+for %%S in (PcaSvc stisvc TapiSrv WFDSConMgrSvc) do (
   sc query %%S >nul 2>&1 && sc stop %%S >nul 2>&1
 )
 if "%NEED_RDP%"=="0" sc stop SessionEnv >nul 2>&1
@@ -875,7 +868,7 @@ schtasks /Query /TN "\Microsoft\Windows\NetTrace\GatherNetworkInfo" >nul 2>&1 &&
 schtasks /Query /TN "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Speech\SpeechModelDownloadTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Speech\SpeechModelDownloadTask" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Windows Error Reporting\QueueReporting" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Windows Error Reporting\QueueReporting" /Disable >nul 2>&1
-schtasks /Query /TN "\Microsoft\Windows\WindowsUpdate\Automatic App Update" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WindowsUpdate\Automatic App Update" /Disable >nul 2>&1
+:: Automatic App Update — conservé (sous \WindowsUpdate, ne pas toucher)
 schtasks /Query /TN "\Microsoft\XblGameSave\XblGameSaveTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTask" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" /Disable >nul 2>&1
@@ -943,8 +936,7 @@ schtasks /Query /TN "\Microsoft\Windows\DiskCleanup\SilentCleanup" >nul 2>&1 && 
 :: PushToInstall — installation d'apps en push à la connexion (service déjà désactivé)
 schtasks /Query /TN "\Microsoft\Windows\PushToInstall\LoginCheck" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\PushToInstall\LoginCheck" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\PushToInstall\Registration" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\PushToInstall\Registration" /Disable >nul 2>&1
-:: WaaSMedic — tente de réactiver automatiquement les composants Windows Update
-schtasks /Query /TN "\Microsoft\Windows\WaaSMedic\PlugScheduler" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WaaSMedic\PlugScheduler" /Disable >nul 2>&1
+:: WaaSMedic — conservé (mécanisme de réparation Windows Update, ne pas toucher)
 :: License Manager — échange de licences temporaires signées (contacte Microsoft)
 schtasks /Query /TN "\Microsoft\Windows\License Manager\TempSignedLicenseExchange" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\License Manager\TempSignedLicenseExchange" /Disable >nul 2>&1
 :: UNP — notifications de disponibilité de mise à jour Windows
@@ -953,8 +945,7 @@ schtasks /Query /TN "\Microsoft\Windows\UNP\RunUpdateNotificationMgmt" >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\ApplicationData\CleanupTemporaryState" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\ApplicationData\CleanupTemporaryState" /Disable >nul 2>&1
 :: AppxDeploymentClient — nettoyage apps provisionnées (inutile après setup initial)
 schtasks /Query /TN "\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup" /Disable >nul 2>&1
-:: Service Initiated Healing — tente de restaurer silencieusement les composants WU désactivés
-schtasks /Query /TN "\Microsoft\Windows\WindowsUpdate\sih" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\WindowsUpdate\sih" /Disable >nul 2>&1
+:: sih — conservé (Service Initiated Healing, restauration composants WU, ne pas toucher)
 :: Retail Demo — nettoyage contenu démo retail hors ligne
 schtasks /Query /TN "\Microsoft\Windows\RetailDemo\CleanupOfflineContent" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\RetailDemo\CleanupOfflineContent" /Disable >nul 2>&1
 :: Work Folders — synchronisation dossiers de travail (fonctionnalité entreprise inutile)
