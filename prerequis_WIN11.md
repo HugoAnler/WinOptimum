@@ -7,6 +7,14 @@
 
 ---
 
+## 🔴 Windows Update & Windows Defender — RÈGLE ABSOLUE
+
+**NE JAMAIS TOUCHER. Sans exception. Sans discussion.**
+
+Ces deux composants sont conservés intégralement dans leur état Windows par défaut. Aucune modification n'est autorisée — ni service, ni registre, ni tâche planifiée, ni entrée `hosts`.
+
+---
+
 ## ✅ Apps TOUJOURS conservées
 
 Ces apps ne doivent **jamais** être supprimées, peu importe le profil :
@@ -314,7 +322,6 @@ Ces services ne doivent **jamais** être désactivés :
 | `settings-win.data.microsoft.com`    | Paramètres télémétrie         |
 | `watson.telemetry.microsoft.com`     | Watson crash reports          |
 | `sqm.telemetry.microsoft.com`        | SQM télémétrie                |
-| `compat.smartscreen.microsoft.com`   | SmartScreen compatibilité     |
 | `browser.pipe.aria.microsoft.com`    | Aria telemetry Edge           |
 | `activity.windows.com`               | Historique d'activité         |
 | `v10.events.data.microsoft.com`      | Events pipeline télémétrie    |
@@ -342,7 +349,6 @@ Ces services ne doivent **jamais** être désactivés :
 | `config.edge.skype.com`             | Config Skype/Teams (apps supprimées) |
 | `tile-service.weather.microsoft.com` | Télémétrie tuile météo MSN |
 | `outlookads.live.com`               | Publicités Outlook |
-| `dl.delivery.mp.microsoft.com`      | CDN Delivery Optimization (DO déjà désactivé) |
 | `fp.msedge.net`                     | CDN télémétrie Edge |
 | `nexus.officeapps.live.com`         | Télémétrie Office |
 
@@ -485,19 +491,22 @@ Ces fragments de chemin ne doivent **jamais** apparaître dans un `reg add` ou `
 
 ---
 
-## 🚫 Domaines Windows Update jamais bloqués (hosts)
+## 🚫 Domaines Windows Update jamais bloqués — Windows Defender inclus (hosts)
 
 Ces domaines ne doivent **jamais** être ajoutés au fichier `hosts` :
 
-| Domaine                          | Raison                    |
-|----------------------------------|---------------------------|
-| `windowsupdate.com`              | Windows Update            |
-| `update.microsoft.com`           | Windows Update            |
-| `download.windowsupdate.com`     | Windows Update CDN        |
-| `wu.microsoft.com`               | Windows Update            |
-| `wustat.windows.com`             | Windows Update stats      |
-| `ntservicepack.microsoft.com`    | Windows Update            |
-| `windowsupdate.microsoft.com`    | Windows Update            |
+| Domaine                              | Raison                                      |
+|--------------------------------------|---------------------------------------------|
+| `windowsupdate.com`                  | Windows Update                              |
+| `update.microsoft.com`               | Windows Update                              |
+| `download.windowsupdate.com`         | Windows Update CDN                          |
+| `wu.microsoft.com`                   | Windows Update                              |
+| `wustat.windows.com`                 | Windows Update stats                        |
+| `ntservicepack.microsoft.com`        | Windows Update                              |
+| `windowsupdate.microsoft.com`        | Windows Update                              |
+| `dl.delivery.mp.microsoft.com`       | CDN Windows Update — Delivery Optimization  |
+| `compat.smartscreen.microsoft.com`   | Windows Defender SmartScreen — cloud lookup |
+| `nav.smartscreen.microsoft.com`      | Windows Defender SmartScreen — navigation   |
 
 ---
 
@@ -584,6 +593,12 @@ Le `.bat` est copié depuis la clé USB en `specialize` puis appelé dans `First
 ---
 
 ## 🛠️ Règles de conception du code
+
+### win11-setup.bat — code uniquement
+
+Le `.bat` ne contient que du **code exécutable**. Aucune règle métier, contrainte, ni mention de ce qui est "conservé", "interdit" ou "intouchable" ne doit figurer en commentaire dans le `.bat`. Toutes les règles sont dans `prerequis_WIN11.md` exclusivement.
+
+---
 
 ### Séparation XML / BAT — principe XML STRICT MINIMUM
 

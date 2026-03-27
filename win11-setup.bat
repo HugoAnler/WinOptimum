@@ -170,8 +170,7 @@ reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\
 :: Recherche cloud désactivée
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search" /v AllowCloudSearch /t REG_DWORD /d 0 /f >nul 2>&1
 :: OneDrive — policy non écrite (conservé, démarrage géré par l'utilisateur)
-:: Windows Spotlight — conservé (fond d'écran verrouillage, choix utilisateur — ne pas toucher)
-:: Windows Defender — aucune clé écrite, conservé intégralement à l'état Windows par défaut
+
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP/Defender/DataCollection OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -231,7 +230,7 @@ reg add "HKCU\SOFTWARE\Microsoft\Edge\Main" /v BackgroundModeEnabled /t REG_DWOR
 echo [%date% %time%] Section 9 : GameDVR/DeliveryOptimization/Messaging/Edge OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
-:: SECTION 10 — Windows Update (intouché — règle absolue)
+:: SECTION 10 — Windows Update
 :: ═══════════════════════════════════════════════════════════
 echo [%date% %time%] Section 10 : Windows Update conserve (non touche) >> "%LOG%"
 
@@ -297,7 +296,7 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\PushNotificatio
 :: CloudContent — expériences personnalisées / Spotlight / SoftLanding
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailoredExperiencesWithDiagnosticData /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableSoftLanding /t REG_DWORD /d 1 /f >nul 2>&1
-:: DisableWindowsSpotlightFeatures — conservé (fond d'écran verrouillage — ne pas toucher)
+
 :: CloudContent 25H2 — contenu "optimisé" cloud injecté dans l'interface (nouveau en 25H2)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableCloudOptimizedContent /t REG_DWORD /d 1 /f >nul 2>&1
 
@@ -610,7 +609,6 @@ echo [%date% %time%] Section 13b : Config systeme avancee OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 14 — Services désactivés (Start=4, effectif après reboot)
-:: NE PAS toucher : WSearch, WinDefend, wuauserv, RpcSs, PlugPlay, WlanSvc
 :: ═══════════════════════════════════════════════════════════
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\DiagTrack" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\dmwappushsvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
@@ -761,7 +759,6 @@ findstr /C:"Telemetry blocks - win11-setup" "%HOSTSFILE%" >nul 2>&1 || (
   echo 0.0.0.0 settings-win.data.microsoft.com
   echo 0.0.0.0 watson.telemetry.microsoft.com
   echo 0.0.0.0 sqm.telemetry.microsoft.com
-  echo 0.0.0.0 compat.smartscreen.microsoft.com
   echo 0.0.0.0 browser.pipe.aria.microsoft.com
   echo 0.0.0.0 activity.windows.com
   echo 0.0.0.0 v10.events.data.microsoft.com
@@ -785,7 +782,6 @@ findstr /C:"Telemetry blocks - win11-setup" "%HOSTSFILE%" >nul 2>&1 || (
   echo 0.0.0.0 edge-analytics.microsoft.com
   echo 0.0.0.0 analytics.live.com
   echo 0.0.0.0 dc.services.visualstudio.com
-  echo 0.0.0.0 nav.smartscreen.microsoft.com
   echo 0.0.0.0 ris.api.iris.microsoft.com
   echo 0.0.0.0 c.bing.com
   echo 0.0.0.0 g.bing.com
@@ -808,7 +804,6 @@ findstr /C:"Telemetry blocks - win11-setup" "%HOSTSFILE%" >nul 2>&1 || (
   echo 0.0.0.0 config.edge.skype.com
   echo 0.0.0.0 tile-service.weather.microsoft.com
   echo 0.0.0.0 outlookads.live.com
-  echo 0.0.0.0 dl.delivery.mp.microsoft.com
   echo 0.0.0.0 fp.msedge.net
   echo 0.0.0.0 nexus.officeapps.live.com
 ) >> "%HOSTSFILE%" 2>nul
@@ -857,7 +852,7 @@ schtasks /Query /TN "\Microsoft\Windows\NetTrace\GatherNetworkInfo" >nul 2>&1 &&
 schtasks /Query /TN "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Speech\SpeechModelDownloadTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Speech\SpeechModelDownloadTask" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Windows Error Reporting\QueueReporting" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Windows Error Reporting\QueueReporting" /Disable >nul 2>&1
-:: Automatic App Update — conservé (sous \WindowsUpdate, ne pas toucher)
+
 schtasks /Query /TN "\Microsoft\XblGameSave\XblGameSaveTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\XblGameSave\XblGameSaveTask" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyMonitor" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Shell\FamilySafetyRefreshTask" /Disable >nul 2>&1
@@ -882,7 +877,7 @@ schtasks /Query /TN "\Microsoft\Windows\Flighting\OneSettings\RefreshCache" >nul
 schtasks /Query /TN "\Microsoft\Windows\Maintenance\WinSAT" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\Maintenance\WinSAT" /Disable >nul 2>&1
 :: SQM — Software Quality Metrics
 schtasks /Query /TN "\Microsoft\Windows\PI\Sqm-Tasks" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\PI\Sqm-Tasks" /Disable >nul 2>&1
-:: UpdateOrchestrator — conservé (règle absolue Windows Update)
+
 :: CloudExperienceHost — onboarding IA/OOBE
 schtasks /Query /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\CloudExperienceHost\CreateObjectTask" /Disable >nul 2>&1
 :: Windows Store telemetry
@@ -924,7 +919,7 @@ schtasks /Query /TN "\Microsoft\Windows\DiskCleanup\SilentCleanup" >nul 2>&1 && 
 :: PushToInstall — installation d'apps en push à la connexion (service déjà désactivé)
 schtasks /Query /TN "\Microsoft\Windows\PushToInstall\LoginCheck" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\PushToInstall\LoginCheck" /Disable >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\PushToInstall\Registration" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\PushToInstall\Registration" /Disable >nul 2>&1
-:: WaaSMedic — conservé (mécanisme de réparation Windows Update, ne pas toucher)
+
 :: License Manager — échange de licences temporaires signées (contacte Microsoft)
 schtasks /Query /TN "\Microsoft\Windows\License Manager\TempSignedLicenseExchange" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\License Manager\TempSignedLicenseExchange" /Disable >nul 2>&1
 :: UNP — notifications de disponibilité de mise à jour Windows
@@ -933,7 +928,7 @@ schtasks /Query /TN "\Microsoft\Windows\UNP\RunUpdateNotificationMgmt" >nul 2>&1
 schtasks /Query /TN "\Microsoft\Windows\ApplicationData\CleanupTemporaryState" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\ApplicationData\CleanupTemporaryState" /Disable >nul 2>&1
 :: AppxDeploymentClient — nettoyage apps provisionnées (inutile après setup initial)
 schtasks /Query /TN "\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup" /Disable >nul 2>&1
-:: sih — conservé (Service Initiated Healing, restauration composants WU, ne pas toucher)
+
 :: Retail Demo — nettoyage contenu démo retail hors ligne
 schtasks /Query /TN "\Microsoft\Windows\RetailDemo\CleanupOfflineContent" >nul 2>&1 && schtasks /Change /TN "\Microsoft\Windows\RetailDemo\CleanupOfflineContent" /Disable >nul 2>&1
 :: Work Folders — synchronisation dossiers de travail (fonctionnalité entreprise inutile)
@@ -950,7 +945,7 @@ echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
 :: SECTION 18 — Suppression applications Appx
-:: Apps TOUJOURS conservées : Edge, Photos, OneDrive, Notepad, Terminal, DesktopAppInstaller, VCLibs, UI.Xaml, NET.Native
+
 :: Note : NEED_RDP et NEED_WEBCAM n'affectent plus la suppression des apps (incluses inconditionnellement)
 :: ═══════════════════════════════════════════════════════════
 
