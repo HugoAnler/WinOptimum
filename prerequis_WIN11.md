@@ -2,6 +2,8 @@
 
 > ⚠️ Ce fichier définit les règles **non-négociables** à respecter dans le script. Il doit être lu en premier à chaque usage de la skill.
 >  **Cible active: Windows 11 25H2 — 1 Go RAM — TPM 2.0 natif — sans bypass**
+>
+> 📐 **Source de vérité unique** — parsé automatiquement par `.github/scripts/validate_bat.py`. Toute règle absente de ce fichier n'est pas validée par la CI. Ne jamais dupliquer les règles dans `CLAUDE.md`.
 
 ---
 
@@ -118,7 +120,17 @@ Ces services ne doivent **jamais** être désactivés :
 | `wuauserv`  | Windows Update — patches sécurité                             |
 | `RpcSs`     | RPC — critique pour le système                                |
 | `PlugPlay`  | Plug and Play — détection matériel                            |
-| `WlanSvc`   | WiFi — connexion sans fil                                     |
+| `WlanSvc`            | WiFi — connexion sans fil                                     |
+| `AppXSvc`            | Microsoft Store et winget en dépendent                        |
+| `seclogon`           | Secondary Logon — installeurs tiers en dépendent              |
+| `TokenBroker`        | OneDrive et Edge en dépendent                                 |
+| `OneSyncSvc`         | OneDrive en dépend                                            |
+| `wlidsvc`            | Microsoft Account Sign-in Assistant — OneDrive et Edge        |
+| `BITS`               | Background Intelligent Transfer — Windows Update              |
+| `WaaSMedicSvc`       | Windows Update Health Service — intouchable                   |
+| `SecurityHealthService` | Windows Security Center — intouchable                      |
+| `wscsvc`             | Windows Security Center service — intouchable                 |
+| `cbdhsvc`            | Historique presse-papiers Win+V local                         |
 
 ---
 
@@ -434,6 +446,59 @@ Ces services ne doivent **jamais** être désactivés :
 | LLMNR désactivé                           | `EnableMulticast=0` — réduit broadcasts réseau + sécurité |
 | WPAD désactivé                            | `DisableWpad=1` — prévient proxy poisoning              |
 | SMBv1 désactivé (belt-and-suspenders)     | `LanmanServer\Parameters\SMB1=0` — belt-and-suspenders 25H2 |
+
+---
+
+## 🚫 Valeurs de registre jamais modifiées
+
+Ces valeurs ne doivent **jamais** apparaître dans un `reg add` ou `reg delete` :
+
+| Valeur                           | Raison                                                        |
+|----------------------------------|---------------------------------------------------------------|
+| `DisableFileSyncNGSC`            | Bloque OneDrive entièrement au niveau système                 |
+| `SubmitSamplesConsent`           | Windows Defender — intouchable                                |
+| `SpynetReporting`                | Windows Defender — intouchable                                |
+| `DisableNotificationCenter`      | Centre de notifications conservé                              |
+| `NoLockScreen`                   | Écran de verrouillage conservé à l'état Windows par défaut    |
+| `NoLockScreenCamera`             | Écran de verrouillage conservé                                |
+| `NoLockScreenSlideshow`          | Écran de verrouillage conservé                                |
+| `RotatingLockScreenEnabled`      | Spotlight conservé                                            |
+| `DisableWindowsSpotlightFeatures`| Spotlight conservé                                            |
+| `Win32PrioritySeparation`        | Valeur Windows par défaut — jamais modifier                   |
+| `BuiltInDnsClientEnabled`        | DNS sécurisé Edge — choix utilisateur                         |
+| `DnsOverHttpsMode`               | DNS sécurisé Edge — choix utilisateur                         |
+| `DnsOverHttpsTemplates`          | DNS sécurisé Edge — choix utilisateur                         |
+
+---
+
+## 🚫 Chemins de registre jamais écrits
+
+Ces fragments de chemin ne doivent **jamais** apparaître dans un `reg add` ou `reg delete` :
+
+| Chemin (fragment)                              | Raison                                              |
+|------------------------------------------------|-----------------------------------------------------|
+| `HKLM\SOFTWARE\Policies\Microsoft\Edge`        | Affiche "géré par une organisation" dans Edge       |
+| `HKLM\SOFTWARE\Policies\Microsoft\MicrosoftEdge` | Idem (alias Edge legacy)                          |
+| `\WindowsUpdate`                               | Windows Update — règle absolue                      |
+| `\WaaSMedic`                                   | Windows Update — règle absolue                      |
+| `\UpdateOrchestrator`                          | Windows Update — règle absolue                      |
+| `\Windows Defender`                            | Windows Defender — règle absolue                    |
+
+---
+
+## 🚫 Domaines Windows Update jamais bloqués (hosts)
+
+Ces domaines ne doivent **jamais** être ajoutés au fichier `hosts` :
+
+| Domaine                          | Raison                    |
+|----------------------------------|---------------------------|
+| `windowsupdate.com`              | Windows Update            |
+| `update.microsoft.com`           | Windows Update            |
+| `download.windowsupdate.com`     | Windows Update CDN        |
+| `wu.microsoft.com`               | Windows Update            |
+| `wustat.windows.com`             | Windows Update stats      |
+| `ntservicepack.microsoft.com`    | Windows Update            |
+| `windowsupdate.microsoft.com`    | Windows Update            |
 
 ---
 
