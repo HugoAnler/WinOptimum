@@ -38,6 +38,7 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 - **Alignement menu démarrer via HKLM uniquement** : `HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer` `TaskbarAlignment=0` — ne pas utiliser `HKCU TaskbarAl`
 - **`DisableFileSyncNGSC` formellement interdit** : `HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive` — bloque OneDrive entièrement au niveau système, empêche même le lancement manuel — ne jamais écrire cette clé
 - **`cbdhsvc` jamais désactivé** : service requis pour l'historique du presse-papiers Win+V local — ne pas l'ajouter à la liste des services ni à la boucle `for`
+- **`DPS`, `WdiSystemHost`, `WdiServiceHost` jamais désactivés** : hébergent les interfaces COM requises par Windows Update — leur désactivation provoque `0x80004002 (E_NOINTERFACE)`
 
 ## Structure de `win11-setup.bat`
 
