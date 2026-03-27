@@ -110,8 +110,11 @@ Ces services ne doivent **jamais** être désactivés :
 
 | Service     | Raison                                                        |
 |-------------|---------------------------------------------------------------|
-| `WSearch`   | Recherche Windows — toujours actif (tous profils, toute RAM)  |
-| `WinDefend` | Windows Defender — sécurité                                   |
+| `WSearch`        | Recherche Windows — toujours actif (tous profils, toute RAM)              |
+| `WinDefend`      | Windows Defender — sécurité                                               |
+| `DPS`            | Diagnostic Policy Service — héberge les interfaces COM requises par Windows Update (0x80004002 si désactivé) |
+| `WdiSystemHost`  | Diagnostic System Host — hôte COM WU                                     |
+| `WdiServiceHost` | Diagnostic Service Host — hôte COM WU                                    |
 | `wuauserv`  | Windows Update — patches sécurité                             |
 | `RpcSs`     | RPC — critique pour le système                                |
 | `PlugPlay`  | Plug and Play — détection matériel                            |
@@ -170,9 +173,6 @@ Ces services ne doivent **jamais** être désactivés :
 | `CDPUserSvc`          | Connected Devices Platform user (cross-device sync) |
 | `DevicesFlowUserSvc`  | Devices Flow — expérience Phone Link                |
 | `BcastDVRUserService` | GameDVR broadcast user service                      |
-| `DPS`                 | Diagnostic Policy Service — troubleshooters qui phoned home |
-| `WdiSystemHost`       | Diagnostic System Host                              |
-| `WdiServiceHost`      | Diagnostic Service Host                             |
 | `diagnosticshub.standardcollector.service` | Diagnostics Hub — collecte dev/télémétrie |
 | `DusmSvc`             | Data Usage — stats réseau par app                   |
 | `icssvc`              | Mobile Hotspot — inutile sur PC de bureau           |
