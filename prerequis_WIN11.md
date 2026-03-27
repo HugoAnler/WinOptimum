@@ -276,7 +276,6 @@ Ces services ne doivent **jamais** être désactivés :
 | `\Microsoft\Windows\Recall\RecallScreenshotTask`                                  | Recall captures (25H2)        |
 | `\Microsoft\Windows\Recall\RecallMaintenanceTask`                                 | Recall maintenance (25H2)     |
 | `\Microsoft\Windows\WPN\PushNotificationCleanup`                                  | Nettoyage push notifications  |
-| `\Microsoft\Windows\BITS\CacheMaintenanceTask`                                    | Cache maintenance BITS        |
 | `\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner`                  | Scanner recommandations MS    |
 | `\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan`                      | Rapport intégrité disque      |
 | `\Microsoft\Windows\SettingSync\BackgroundUploadTask`                             | Sync paramètres cloud         |
