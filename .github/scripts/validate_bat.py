@@ -510,6 +510,370 @@ def test_batch_header(content):
     return errors
 
 
+# ─── Test 26 : Apps mandatory présentes dans APPLIST ─────────────────────────
+
+# Apps que le prerequis impose de supprimer (vérification présence dans APPLIST)
+MANDATORY_APPS_TO_REMOVE = [
+    "7EE7776C.LinkedInforWindows",
+    "Facebook.Facebook",
+    "MSTeams",
+    "Microsoft.Teams",
+    "Microsoft.3DBuilder",
+    "Microsoft.3DViewer",
+    "Microsoft.Microsoft3DViewer",
+    "Microsoft.549981C3F5F10",
+    "Microsoft.Advertising.Xaml",
+    "Microsoft.BingNews",
+    "Microsoft.BingWeather",
+    "Microsoft.BingSearch",
+    "Microsoft.Copilot",
+    "Microsoft.WindowsRecall",
+    "Microsoft.RecallApp",
+    "Microsoft.GetHelp",
+    "Microsoft.Getstarted",
+    "Microsoft.GamingApp",
+    "Microsoft.Messaging",
+    "Microsoft.MicrosoftOfficeHub",
+    "Microsoft.MicrosoftSolitaireCollection",
+    "Microsoft.MicrosoftStickyNotes",
+    "Microsoft.MixedReality.Portal",
+    "Microsoft.NetworkSpeedTest",
+    "Microsoft.News",
+    "Microsoft.Office.OneNote",
+    "Microsoft.Office.Sway",
+    "Microsoft.OneConnect",
+    "Microsoft.OutlookForWindows",
+    "Microsoft.People",
+    "Microsoft.PowerAutomateDesktop",
+    "Microsoft.Print3D",
+    "Microsoft.BioEnrollment",
+    "Microsoft.RemoteDesktop",
+    "Microsoft.SkypeApp",
+    "Microsoft.Todos",
+    "Microsoft.Wallet",
+    "Microsoft.Whiteboard",
+    "Microsoft.WidgetsPlatformRuntime",
+    "Microsoft.WindowsAlarms",
+    "Microsoft.WindowsCamera",
+    "Microsoft.WindowsCalculator",
+    "Microsoft.WindowsFeedbackHub",
+    "Microsoft.WindowsMaps",
+    "Microsoft.WindowsSoundRecorder",
+    "Microsoft.Windows.DevHome",
+    "Microsoft.Windows.NarratorQuickStart",
+    "Microsoft.Windows.ParentalControls",
+    "Microsoft.Windows.SecureAssessmentBrowser",
+    "Microsoft.XboxApp",
+    "Microsoft.Xbox.TCUI",
+    "Microsoft.XboxGameOverlay",
+    "Microsoft.XboxGamingOverlay",
+    "Microsoft.XboxIdentityProvider",
+    "Microsoft.XboxSpeechToTextOverlay",
+    "Microsoft.ZuneMusic",
+    "Microsoft.ZuneVideo",
+    "MicrosoftWindows.CrossDevice",
+    "MicrosoftCorporationII.QuickAssist",
+    "MicrosoftCorporationII.MicrosoftFamily",
+    "MicrosoftCorporationII.PhoneLink",
+    "Microsoft.YourPhone",
+    "Microsoft.Windows.Ai.Copilot.Provider",
+    "Microsoft.LinkedIn",
+    "Netflix",
+    "SpotifyAB.SpotifyMusic",
+    "clipchamp.Clipchamp",
+    "king.com.",
+    "Microsoft.WindowsCommunicationsApps",
+    "Microsoft.Windows.HolographicFirstRun",
+    "Microsoft.GamingServices",
+    "MicrosoftWindows.Client.WebExperience",
+]
+
+
+def test_mandatory_apps_in_applist(content):
+    errors = []
+    m = re.search(r'set\s+"APPLIST=([^"]+)"', content, re.IGNORECASE)
+    if not m:
+        errors.append("  Variable APPLIST introuvable")
+        return errors
+    applist = m.group(1).lower()
+
+    for app in MANDATORY_APPS_TO_REMOVE:
+        if app.lower() not in applist:
+            errors.append(f"  App mandatory absente de APPLIST : '{app}'")
+
+    return errors
+
+
+# ─── Test 27 : Services mandatory désactivés ─────────────────────────────────
+
+# Services que le prerequis impose de désactiver
+# Exclus : BthAvctpSvc (conditionnel NEED_BT), TermService/SessionEnv (conditionnel NEED_RDP),
+#          Spooler (conditionnel NEED_PRINTER), uhssvc (conflit CLAUDE.md — protégé WU)
+MANDATORY_SERVICES_DISABLED = [
+    "DiagTrack", "dmwappushsvc", "dmwappushservice", "diagsvc",
+    "WerSvc", "wercplsupport", "NetTcpPortSharing", "RemoteAccess",
+    "RemoteRegistry", "SharedAccess", "TrkWks", "WMPNetworkSvc",
+    "XblAuthManager", "XblGameSave", "XboxNetApiSvc", "XboxGipSvc",
+    "BDESVC", "wbengine", "Fax", "RetailDemo", "ScDeviceEnum", "SCardSvr",
+    "AJRouter", "MessagingService", "SensorService", "PrintNotify", "wisvc",
+    "lfsvc", "MapsBroker", "CDPSvc", "PhoneSvc", "WalletService", "AIXSvc",
+    "CscService", "lltdsvc", "SensorDataService", "SensrSvc",
+    "BingMapsGeocoder", "PushToInstall", "SysMain", "FontCache",
+    "WpnService", "WpnUserService", "CDPUserSvc", "DevicesFlowUserSvc",
+    "BcastDVRUserService", "diagnosticshub.standardcollector.service",
+    "DusmSvc", "icssvc", "SEMgrSvc", "WpcMonSvc", "MixedRealityOpenXRSvc",
+    "NaturalAuthentication", "SmsRouter", "Ndu", "FDResPub", "SSDPSRV",
+    "upnphost", "Recall", "WindowsAIService", "WinMLService",
+    "CoPilotMCPService", "DoSvc", "WbioSrvc", "EntAppSvc", "WManSvc",
+    "DmEnrollmentSvc", "tzautoupdate", "wmiApSrv", "SDRSVC", "spectrum",
+    "SharedRealitySvc", "p2pimsvc", "p2psvc", "PNRPsvc", "PNRPAutoReg",
+    "PcaSvc", "stisvc", "TapiSrv", "WFDSConMgrSvc", "defragsvc",
+]
+
+
+def test_mandatory_services_disabled(content):
+    """Vérifie que chaque service mandatory apparaît dans reg add Start=4 OU dans le for loop sc stop."""
+    errors = []
+
+    # Extraire la liste des services dans les boucles for %%S
+    loop_services: set = set()
+    for m in re.finditer(r"for\s+%%S\s+in\s+\(([^)]+)\)", content, re.IGNORECASE):
+        for s in m.group(1).split():
+            loop_services.add(s.strip().lower())
+
+    for svc in MANDATORY_SERVICES_DISABLED:
+        key = svc.lower()
+        # Cherche reg add Services\NOM ... /d 4
+        in_reg = bool(re.search(
+            rf"\\Services\\{re.escape(svc)}(\\|\"|\s).*?/d\s+4",
+            content, re.IGNORECASE
+        ))
+        # Cherche dans les boucles for %%S
+        in_loop = key in loop_services
+
+        if not in_reg and not in_loop:
+            errors.append(f"  Service mandatory absent du script : '{svc}' (ni Start=4 ni sc stop loop)")
+
+    return errors
+
+
+# ─── Test 28 : Tâches planifiées mandatory désactivées ───────────────────────
+
+# Tâches mandatory à désactiver (hors tâches protégées par CLAUDE.md :
+# \WindowsUpdate\, \WaaSMedic\, \UpdateOrchestrator\, \BITS\)
+MANDATORY_TASKS = [
+    r"\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser",
+    r"\Microsoft\Windows\Application Experience\ProgramDataUpdater",
+    r"\Microsoft\Windows\Application Experience\StartupAppTask",
+    r"\Microsoft\Windows\Application Experience\MareBackfill",
+    r"\Microsoft\Windows\Application Experience\AitAgent",
+    r"\Microsoft\Windows\Application Experience\PcaPatchDbTask",
+    r"\Microsoft\Windows\Autochk\Proxy",
+    r"\Microsoft\Windows\Customer Experience Improvement Program\Consolidator",
+    r"\Microsoft\Windows\Customer Experience Improvement Program\KernelCeipTask",
+    r"\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip",
+    r"\Microsoft\Windows\Customer Experience Improvement Program\BthSQM",
+    r"\Microsoft\Windows\Customer Experience Improvement Program\Uploader",
+    r"\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector",
+    r"\Microsoft\Windows\Feedback\Siuf\DmClient",
+    r"\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload",
+    r"\Microsoft\Windows\Maps\MapsToastTask",
+    r"\Microsoft\Windows\Maps\MapsUpdateTask",
+    r"\Microsoft\Windows\NetTrace\GatherNetworkInfo",
+    r"\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem",
+    r"\Microsoft\Windows\Speech\SpeechModelDownloadTask",
+    r"\Microsoft\Windows\Windows Error Reporting\QueueReporting",
+    r"\Microsoft\XblGameSave\XblGameSaveTask",
+    r"\Microsoft\XblGameSave\XblGameSaveTaskLogon",
+    r"\Microsoft\Windows\Shell\FamilySafetyMonitor",
+    r"\Microsoft\Windows\Shell\FamilySafetyRefreshTask",
+    r"\Microsoft\Windows\Defrag\ScheduledDefrag",
+    r"\Microsoft\Windows\Diagnosis\Scheduled",
+    r"\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner",
+    r"\Microsoft\Windows\Device Information\Device",
+    r"\Microsoft\Windows\Device Information\Device User",
+    r"\Microsoft\Windows\DiskFootprint\Diagnostics",
+    r"\Microsoft\Windows\Flighting\FeatureConfig\ReconcileFeatures",
+    r"\Microsoft\Windows\Flighting\OneSettings\RefreshCache",
+    r"\Microsoft\Windows\Maintenance\WinSAT",
+    r"\Microsoft\Windows\PI\Sqm-Tasks",
+    r"\Microsoft\Windows\CloudExperienceHost\CreateObjectTask",
+    r"\Microsoft\Windows\WS\WSTask",
+    r"\Microsoft\Windows\Clip\License Validation",
+    r"\Microsoft\Windows\AI\AIXSvcTaskMaintenance",
+    r"\Microsoft\Windows\Copilot\CopilotDailyReport",
+    r"\Microsoft\Windows\Recall\IndexerRecoveryTask",
+    r"\Microsoft\Windows\Recall\RecallScreenshotTask",
+    r"\Microsoft\Windows\Recall\RecallMaintenanceTask",
+    r"\Microsoft\Windows\WPN\PushNotificationCleanup",
+    r"\Microsoft\Windows\Data Integrity Scan\Data Integrity Scan",
+    r"\Microsoft\Windows\SettingSync\BackgroundUploadTask",
+    r"\Microsoft\Windows\MUI\LPRemove",
+    r"\Microsoft\Windows\MemoryDiagnostic\ProcessMemoryDiagnosticEvents",
+    r"\Microsoft\Windows\MemoryDiagnostic\RunFullMemoryDiagnostic",
+    r"\Microsoft\Windows\Location\Notifications",
+    r"\Microsoft\Windows\Location\WindowsActionDialog",
+    r"\Microsoft\Windows\StateRepository\MaintenanceTask",
+    r"\Microsoft\Windows\ErrorDetails\EnableErrorDetailsUpdate",
+    r"\Microsoft\Windows\ErrorDetails\ErrorDetailsUpdate",
+    r"\Microsoft\Windows\DiskCleanup\SilentCleanup",
+    r"\Microsoft\Windows\PushToInstall\LoginCheck",
+    r"\Microsoft\Windows\PushToInstall\Registration",
+    r"\Microsoft\Windows\License Manager\TempSignedLicenseExchange",
+    r"\Microsoft\Windows\UNP\RunUpdateNotificationMgmt",
+    r"\Microsoft\Windows\ApplicationData\CleanupTemporaryState",
+    r"\Microsoft\Windows\AppxDeploymentClient\Pre-staged app cleanup",
+    r"\Microsoft\Windows\RetailDemo\CleanupOfflineContent",
+    r"\Microsoft\Windows\Work Folders\Work Folders Logon Synchronization",
+    r"\Microsoft\Windows\Workplace Join\Automatic-Device-Join",
+    r"\Microsoft\Windows\DUSM\dusmtask",
+    r"\Microsoft\Windows\Management\Provisioning\Cellular",
+    r"\Microsoft\Windows\Management\Provisioning\Logon",
+]
+
+
+def test_mandatory_tasks_disabled(content):
+    errors = []
+    content_lower = content.lower()
+    for task in MANDATORY_TASKS:
+        if task.lower() not in content_lower:
+            errors.append(f"  Tâche mandatory absente du script : '{task}'")
+    return errors
+
+
+# ─── Test 29 : Domaines télémétrie bloqués dans hosts ────────────────────────
+
+MANDATORY_TELEMETRY_DOMAINS = [
+    "telemetry.microsoft.com",
+    "vortex.data.microsoft.com",
+    "settings-win.data.microsoft.com",
+    "watson.telemetry.microsoft.com",
+    "sqm.telemetry.microsoft.com",
+    "compat.smartscreen.microsoft.com",
+    "browser.pipe.aria.microsoft.com",
+    "activity.windows.com",
+    "v10.events.data.microsoft.com",
+    "v20.events.data.microsoft.com",
+    "self.events.data.microsoft.com",
+    "pipe.skype.com",
+    "copilot.microsoft.com",
+    "sydney.bing.com",
+    "feedback.windows.com",
+    "oca.microsoft.com",
+    "watson.microsoft.com",
+    "bingads.microsoft.com",
+    "eu-mobile.events.data.microsoft.com",
+    "us-mobile.events.data.microsoft.com",
+    "mobile.events.data.microsoft.com",
+    "edge.activity.windows.com",
+    "browser.events.data.msn.com",
+    "telecommand.telemetry.microsoft.com",
+    "storeedge.operationmanager.microsoft.com",
+    "checkappexec.microsoft.com",
+    "inference.location.live.net",
+    "location.microsoft.com",
+    "watson.ppe.telemetry.microsoft.com",
+    "umwatson.telemetry.microsoft.com",
+    "config.edge.skype.com",
+    "tile-service.weather.microsoft.com",
+    "outlookads.live.com",
+    "dl.delivery.mp.microsoft.com",
+    "fp.msedge.net",
+    "nexus.officeapps.live.com",
+]
+
+
+def test_mandatory_telemetry_hosts(content):
+    """Vérifie que chaque domaine télémétrie mandatory est bloqué dans la section hosts."""
+    errors = []
+    # Isoler la section hosts (section 16)
+    hosts_section = ""
+    in_s16 = False
+    for line in content.splitlines():
+        if "SECTION 16" in line:
+            in_s16 = True
+        if in_s16 and "SECTION 17" in line:
+            break
+        if in_s16:
+            hosts_section += line + "\n"
+
+    if not hosts_section:
+        errors.append("  Section 16 (hosts) introuvable")
+        return errors
+
+    hosts_lower = hosts_section.lower()
+    for domain in MANDATORY_TELEMETRY_DOMAINS:
+        if domain.lower() not in hosts_lower:
+            errors.append(f"  Domaine télémétrie absent des hosts : '{domain}'")
+
+    return errors
+
+
+# ─── Test 30 : Optimisations clés appliquées ─────────────────────────────────
+
+MANDATORY_OPTIMIZATIONS = [
+    # (description, pattern à chercher dans le contenu actif)
+    ("AllowTelemetry=0",           r'AllowTelemetry.*?/d\s+0'),
+    ("AllowRecallEnablement=0",    r'AllowRecallEnablement.*?/d\s+0'),
+    ("TurnOffWindowsCopilot=1",    r'TurnOffWindowsCopilot.*?/d\s+1'),
+    ("DisableAIDataAnalysis=1",    r'DisableAIDataAnalysis.*?/d\s+1'),
+    ("EnableMemoryCompression=1",  r'EnableMemoryCompression.*?/d\s+1'),
+    ("HiberbootEnabled=0",         r'HiberbootEnabled.*?/d\s+0'),
+    ("TaskbarAlignment=0 (HKLM)", r'HKLM.*TaskbarAlignment.*?/d\s+0'),
+    ("AllowClipboardHistory=1",    r'AllowClipboardHistory.*?/d\s+1'),
+    ("DODownloadMode=0",           r'DODownloadMode.*?/d\s+0'),
+    ("BingSearchEnabled=0",        r'BingSearchEnabled.*?/d\s+0'),
+    ("DisableWindowsConsumerFeatures=1", r'DisableWindowsConsumerFeatures.*?/d\s+1'),
+    ("EnableActivityFeed=0",       r'EnableActivityFeed.*?/d\s+0'),
+    ("GameDVR desactive",          r'(?:GameDVR_Enabled|AllowGameDVR).*?/d\s+0'),
+    ("powercfg /h off",            r'\bpowercfg\b.*?/h\s+off'),
+    ("Prefetch desactive",         r'EnablePrefetcher.*?/d\s+0'),
+    ("SysMain desactive",          r'Services\\SysMain.*?/d\s+4'),
+]
+
+
+def test_mandatory_optimizations(content):
+    errors = []
+    for description, pattern in MANDATORY_OPTIMIZATIONS:
+        if not re.search(pattern, content, re.IGNORECASE):
+            errors.append(f"  Optimisation manquante : {description}")
+    return errors
+
+
+# ─── Test 31 : Suppression fichiers Panther (sécurité 25H2) ──────────────────
+
+def test_panther_deletion(active_lines):
+    """Vérifie que les fichiers Panther sont supprimés (mot de passe en clair 25H2)."""
+    errors = []
+    found_unattend = False
+    found_original = False
+    for _, line in active_lines:
+        if "panther" in line.lower() and "unattend.xml" in line.lower() and "del" in line.lower():
+            found_unattend = True
+        if "panther" in line.lower() and "unattend-original.xml" in line.lower() and "del" in line.lower():
+            found_original = True
+    if not found_unattend:
+        errors.append("  del Panther\\unattend.xml absent (mot de passe admin en clair 25H2)")
+    if not found_original:
+        errors.append("  del Panther\\unattend-original.xml absent")
+    return errors
+
+
+# ─── Test 32 : schtasks jamais dans une boucle for (chemins avec espaces) ────
+
+def test_no_schtasks_in_for_loop(content):
+    """schtasks /Change /TN ne doit jamais passer par une boucle for (espaces dans les chemins)."""
+    errors = []
+    # Cherche : for %%[A-Z] in (...) do ... schtasks /Change /TN %%[A-Z]
+    # Indique que le TN vient d'une variable de boucle (dangereux avec espaces)
+    if re.search(
+        r'for\s+%%(\w)\s+in\s+\([^)]+\).*schtasks\s+/Change\s+/TN\s+%%\1',
+        content, re.IGNORECASE | re.DOTALL
+    ):
+        errors.append("  schtasks /Change /TN dans une boucle for — chemins avec espaces seront tronqués")
+    return errors
+
+
 # ─── Exécution ────────────────────────────────────────────────────────────────
 
 def run_test(name, errors):
@@ -592,6 +956,21 @@ def main():
             test_clean_exit(content)),
         ("25 En-tete batch valide (@echo off + setlocal)",
             test_batch_header(content)),
+        # ── Prerequis — exhaustif ──────────────────────────────────
+        ("26 Apps mandatory presentes dans APPLIST",
+            test_mandatory_apps_in_applist(content)),
+        ("27 Services mandatory desactives (Start=4 ou sc stop)",
+            test_mandatory_services_disabled(content)),
+        ("28 Taches planifiees mandatory desactivees",
+            test_mandatory_tasks_disabled(content)),
+        ("29 Domaines telemetrie bloques dans hosts",
+            test_mandatory_telemetry_hosts(content)),
+        ("30 Optimisations cles appliquees",
+            test_mandatory_optimizations(content)),
+        ("31 Suppression fichiers Panther (securite 25H2)",
+            test_panther_deletion(active_lines)),
+        ("32 schtasks jamais dans une boucle for",
+            test_no_schtasks_in_for_loop(content)),
     ]
 
     passed = 0
