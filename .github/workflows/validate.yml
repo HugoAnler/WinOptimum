@@ -1,0 +1,24 @@
+name: Validate win11-setup.bat
+
+on:
+  push:
+    branches: [Update, main, master]
+  pull_request:
+    branches: [Update, main, master]
+
+jobs:
+  validate:
+    name: Static validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Run static validation
+        run: python .github/scripts/validate_bat.py
