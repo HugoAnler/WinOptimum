@@ -110,8 +110,11 @@ Ces services ne doivent **jamais** être désactivés :
 
 | Service     | Raison                                                        |
 |-------------|---------------------------------------------------------------|
-| `WSearch`   | Recherche Windows — toujours actif (tous profils, toute RAM)  |
-| `WinDefend` | Windows Defender — sécurité                                   |
+| `WSearch`        | Recherche Windows — toujours actif (tous profils, toute RAM)              |
+| `WinDefend`      | Windows Defender — sécurité                                               |
+| `DPS`            | Diagnostic Policy Service — héberge les interfaces COM requises par Windows Update (0x80004002 si désactivé) |
+| `WdiSystemHost`  | Diagnostic System Host — hôte COM WU                                     |
+| `WdiServiceHost` | Diagnostic Service Host — hôte COM WU                                    |
 | `wuauserv`  | Windows Update — patches sécurité                             |
 | `RpcSs`     | RPC — critique pour le système                                |
 | `PlugPlay`  | Plug and Play — détection matériel                            |
@@ -170,9 +173,6 @@ Ces services ne doivent **jamais** être désactivés :
 | `CDPUserSvc`          | Connected Devices Platform user (cross-device sync) |
 | `DevicesFlowUserSvc`  | Devices Flow — expérience Phone Link                |
 | `BcastDVRUserService` | GameDVR broadcast user service                      |
-| `DPS`                 | Diagnostic Policy Service — troubleshooters qui phoned home |
-| `WdiSystemHost`       | Diagnostic System Host                              |
-| `WdiServiceHost`      | Diagnostic Service Host                             |
 | `diagnosticshub.standardcollector.service` | Diagnostics Hub — collecte dev/télémétrie |
 | `DusmSvc`             | Data Usage — stats réseau par app                   |
 | `icssvc`              | Mobile Hotspot — inutile sur PC de bureau           |
@@ -480,6 +480,7 @@ del /f /q "C:\Windows\Panther\unattend-original.xml" >nul 2>&1
 | Désactiver `OneSyncSvc`               | OneDrive en dépend — jamais désactivé                         |
 | Désactiver `wlidsvc`                  | Microsoft Account Sign-in Assistant — OneDrive et Edge en dépendent |
 | Omettre la suppression fichiers Panther | Mot de passe admin exposé en clair — risque sécurité        |
+| **Toucher Windows Update ou Windows Defender sous quelque prétexte que ce soit** | **RÈGLE ABSOLUE** — aucune clé registre (`WindowsUpdate\*`, `Windows Defender\*`, `SubmitSamplesConsent`, `SpynetReporting`), aucun service (`wuauserv`, `BITS`, `uhssvc`, `WaaSMedic`, `WinDefend`, `SecurityHealthService`, `wscsvc`), aucune tâche planifiée (`\WindowsUpdate\*`, `\WaaSMedic\*`, `\Windows Defender\*`), aucune entrée hosts ne doit affecter Windows Update ni Windows Defender — sans exception |
 | `Win32_ComputerSystem.Put()` / `Set-WmiInstance` / `wmic pagefileset` dans le BAT | Token COM/WMI absent en `FirstLogonCommands` — arrêt silencieux du script — utiliser clés registre |
 | Commande PowerShell sans `-NonInteractive` + `try/catch`     | Exception PS propage exit code ≠ 0 → arrêt silencieux du BAT parent  |
 | **Mettre des clés de registre dans `autounattend.xml`**  | **Le XML ne contient que le strict minimum setup — tout le registre est dans le .bat** |
