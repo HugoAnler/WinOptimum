@@ -35,19 +35,19 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 | 3 | Suppression fichiers Panther (mot de passe en clair 25H2) |
 | 4 | Pagefile fixe 6 Go — vérification 10 Go libres avant |
 | 5 | Mémoire : compression, SysMain/Prefetch désactivés |
-| 6 | Télémétrie / Copilot / Recall / IA 25H2 |
+| 6 | Télémétrie / Copilot / Recall / IA 25H2 / EventTranscript / MRT / TailoredExperiences |
 | 7 | AutoLoggers (DiagTrack, DiagLog, SQMLogger, WiFiSession, CloudExperienceHostOobe, NtfsLog, ReadyBoot, AppModel, LwtNetLog) |
 | 8 | Windows Search — désactive web/Bing/Search Highlights (WSearch reste actif) |
 | 9 | GameDVR, Delivery Optimization, Edge démarrage anticipé/arrière-plan (HKCU) |
 | 10 | Politiques Windows Update |
 | 11 | Vie privée, sécurité, WER, ContentDelivery, AppPrivacy |
-| 11b | CDP, Clipboard (Win+V local activé, cloud désactivé), ContentDeliveryManager, HKCU privacy, Ink Workspace, Peernet, TCP sécurité, LLMNR, WPAD, SMBv1, Biométrie |
+| 11b | CDP, Clipboard (Win+V local activé, cloud désactivé), ContentDeliveryManager, HKCU privacy, Spotlight suggestions (ActionCenter/Settings/TailoredExperiences HKCU), Ink Workspace, Peernet, TCP sécurité, LLMNR, WPAD, SMBv1, Biométrie |
 | 12 | Interface Win10 (taskbar, widgets, menu contextuel, hibernation) |
-| 13 | CPU : `SystemResponsiveness=10`, PowerThrottling off, sécurité TCP/IP (`DisableIPSourceRouting`, `EnableICMPRedirect=0`) |
+| 13 | CPU : `SystemResponsiveness=10`, PowerThrottling off, sécurité TCP/IP (`DisableIPSourceRouting`, `EnableICMPRedirect=0`), `DisableBandwidthThrottling=1` (LanmanWorkstation) |
 | 13b | Config avancée : bypass TPM/RAM, PasswordLess, NumLock, Snap Assist, menu alimentation, RDP conditionnel |
-| 14 | Services → `Start=4` (90+ services, effectif après reboot) |
-| 15 | `sc stop` immédiat + `sc failure DiagTrack` |
-| 16 | Fichier `hosts` — blocage 57+ domaines télémétrie |
+| 14 | Services → `Start=4` (100+ services, effectif après reboot) dont WinRM, RasAuto, RasMan, iphlpsvc, IKEEXT, PolicyAgent, fhsvc, AxInstSV, MSiSCSI, TextInputManagementService, GraphicsPerfSvc |
+| 15 | `sc stop` immédiat (incluant les 11 nouveaux services) + `sc failure DiagTrack` |
+| 16 | Fichier `hosts` — blocage 60+ domaines télémétrie dont `eu/us.vortex-win.data.microsoft.com`, `inference.microsoft.com` |
 | 17a | GPO AppCompat (`DisableUAR`, `DisableInventory`, `DisablePCA`) |
 | 17 | 73+ tâches planifiées désactivées (`schtasks /Change /Disable`) |
 | 18 | Suppression apps UWP (PowerShell `Remove-AppxPackage`) |
@@ -64,6 +64,15 @@ set NEED_BT=0       # 1 = conserver BthAvctpSvc (Bluetooth audio)
 set NEED_PRINTER=1  # 0 = désactiver Spooler (pas d'imprimante)
 set BLOCK_ADOBE=0   # 1 = activer le bloc Adobe dans hosts
 ```
+
+## CI / Validation automatique
+
+| Fichier | Rôle |
+|---|---|
+| `.github/workflows/validate.yml` | Déclenche `validate_bat.py` sur push/PR vers `Update` et `main` |
+| `.github/scripts/validate_bat.py` | 32 tests statiques — règles lues depuis `prerequis_WIN11.md` + checks hardcodés |
+
+Tests clés : valeurs registre interdites, services protégés, apps protégées, WU intouché, hosts WU jamais bloqués, structure 20 sections, 32 optimisations obligatoires, services v2 désactivés, hosts v2 bloqués.
 
 ## Conventions de code
 

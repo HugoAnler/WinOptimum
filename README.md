@@ -6,7 +6,7 @@
 
 ## Description
 
-**WinOptimum** est un toolkit de debloat et d'optimisation de Windows 11 25H2 conçu pour les machines à ressources limitées (1 Go RAM). Il supprime les applications inutiles, désactive la télémétrie, bloque Copilot/Recall/IA 25H2, optimise la mémoire et applique plus de 100 réglages registre — tout en conservant la sécurité et les fonctionnalités essentielles de Windows.
+**WinOptimum** est un toolkit de debloat et d'optimisation de Windows 11 25H2 conçu pour les machines à ressources limitées (1 Go RAM). Il supprime les applications inutiles, désactive la télémétrie, bloque Copilot/Recall/IA 25H2, optimise la mémoire et applique plus de 150 réglages registre — tout en conservant la sécurité et les fonctionnalités essentielles de Windows.
 
 Le script est pensé pour un **déploiement non assisté** : il s'intègre dans un fichier `autounattend.xml` via la section `FirstLogonCommands`, et s'exécute automatiquement au premier démarrage après installation. Il peut également être lancé manuellement en tant qu'administrateur sur un Windows déjà installé.
 
@@ -38,18 +38,18 @@ Le script est organisé en **20 sections** qui s'exécutent séquentiellement :
 | 3 | Suppression des fichiers Panther (`C:\Windows\Panther`) — sécurité : mot de passe admin en clair (25H2) |
 | 4 | Pagefile fixe à 6 Go sur C: (uniquement si ≥ 10 Go d'espace libre) |
 | 5 | Optimisation mémoire : compression activée, Prefetch désactivé, SysMain arrêté, opt-out télémétrie PowerShell |
-| 6 | Zéro télémétrie : 20+ clés registre — Copilot, Recall, DiagTrack, IA 25H2, Spotlight, Cloud Search, collecte Microsoft |
+| 6 | Zéro télémétrie : 25+ clés registre — Copilot, Recall, DiagTrack, IA 25H2, EventTranscript, MRT, TailoredExperiences, Cloud Search, collecte Microsoft |
 | 7 | AutoLoggers désactivés : DiagTrack, DiagLog, SQMLogger, WiFiSession, NtfsLog, ReadyBoot, AppModel, LwtNetLog, CloudExperienceHostOobe |
 | 8 | Windows Search : désactivation recherche web, Bing, Search Highlights animés (WSearch reste actif) |
 | 9 | GameDVR désactivé, Delivery Optimization désactivé, Edge démarrage anticipé/arrière-plan off (HKCU) |
 | 10 | Politiques Windows Update : redémarrage rapide, réseau mesuré autorisé, notifications conservées |
 | 11 | Vie privée & sécurité : Cortana, ID publicitaire, historique d'activité, géolocalisation, RemoteAssistance, saisie, AutoPlay, contenu cloud, cartes hors ligne, modèle vocal |
-| 11b | CDP, Presse-papiers local Win+V activé (cloud/cross-device désactivé), ContentDeliveryManager, HKCU privacy, LLMNR, WPAD, SMBv1, Biométrie |
+| 11b | CDP, Presse-papiers local Win+V activé (cloud/cross-device désactivé), ContentDeliveryManager, HKCU privacy, Spotlight suggestions (ActionCenter/Settings/TailoredExperiences), LLMNR, WPAD, SMBv1, Biométrie |
 | 12 | Interface Win10 : barre à gauche (HKLM), widgets supprimés, Teams/Copilot masqués, menu contextuel classique, "Ce PC" par défaut, Galerie/Réseau masqués, son démarrage off, hibernation off, Fast Startup off — centre de notifications conservé |
-| 13 | Priorité CPU : `SystemResponsiveness = 10`, PowerThrottling off, TCP security |
-| 14 | 90+ services désactivés via registre (`Start=4`) |
-| 15 | Arrêt immédiat des services désactivés + `sc failure DiagTrack` |
-| 16 | Fichier `hosts` : 57+ domaines de télémétrie bloqués en `0.0.0.0` (+ bloc Adobe optionnel) |
+| 13 | Priorité CPU : `SystemResponsiveness = 10`, PowerThrottling off, TCP security, LanmanWorkstation throttling désactivé |
+| 14 | 100+ services désactivés via registre (`Start=4`) dont WinRM, RasAuto/Man, iphlpsvc, IKEEXT, PolicyAgent, fhsvc, AxInstSV, MSiSCSI, TextInputManagementService, GraphicsPerfSvc |
+| 15 | Arrêt immédiat des services désactivés (incluant les 11 nouveaux) + `sc failure DiagTrack` |
+| 16 | Fichier `hosts` : 60+ domaines de télémétrie bloqués en `0.0.0.0` dont `eu/us.vortex-win.data.microsoft.com`, `inference.microsoft.com` (+ bloc Adobe optionnel) |
 | 17a | GPO AppCompat : `DisableUAR`, `DisableInventory`, `DisablePCA`, `AITEnable=0` |
 | 17 | 73+ tâches planifiées désactivées (télémétrie, CEIP, Recall, Copilot, Xbox, IA 25H2, MDM, Work Folders) |
 | 18 | Suppression de 73+ applications bloatware (UWP) via PowerShell |
@@ -153,11 +153,12 @@ Pour pré-intégrer les optimisations dans une image Windows avant déploiement 
 
 | Catégorie | Quantité |
 |---|---|
-| Clés registre modifiées | 135+ |
-| Services désactivés | 90+ |
+| Clés registre modifiées | 150+ |
+| Services désactivés | 100+ |
 | Tâches planifiées désactivées | 73+ |
 | Applications (UWP) supprimées | 73+ |
-| Domaines de télémétrie bloqués | 57+ |
+| Domaines de télémétrie bloqués | 60+ |
+| Tests CI automatisés | 32 |
 | Options de configuration | 5 |
 
 ---
@@ -166,7 +167,7 @@ Pour pré-intégrer les optimisations dans une image Windows avant déploiement 
 
 | Fichier | Description |
 |---|---|
-| `win11-setup.bat` | Script principal d'optimisation post-installation (~1 025 lignes) |
+| `win11-setup.bat` | Script principal d'optimisation post-installation (~1 037 lignes) |
 | `ApplyScriptWim.cmd` | Outil d'optimisation hors-ligne d'une image WIM avant installation (~920 lignes) |
 | `prerequis_WIN11.md` | Document de spécification : règles de conception, listes d'apps/services/tâches, contraintes techniques |
 | `CLAUDE.md` | Fichier de configuration interne — structure du script, règles absolues, conventions |
@@ -177,7 +178,7 @@ Pour pré-intégrer les optimisations dans une image Windows avant déploiement 
 
 ### Pourquoi pas de boucle pour les clés registre ?
 
-Les 135+ appels `reg add` sont écrits individuellement et non factorisés dans une boucle `for`. Ce choix est délibéré :
+Les 150+ appels `reg add` sont écrits individuellement et non factorisés dans une boucle `for`. Ce choix est délibéré :
 
 - **Chemins et types hétérogènes** — chaque clé a sa propre ruche (`HKLM`, `HKCU`), son propre chemin, son type (`REG_DWORD`, `REG_SZ`, `REG_MULTI_SZ`) et sa valeur. Une boucle nécessiterait un tableau de paramètres plus complexe à maintenir que les appels directs.
 - **Lisibilité et auditabilité** — un script de sécurité/optimisation doit pouvoir être relu ligne par ligne. Chaque `reg add` est explicite : on voit immédiatement ce qui est modifié, où et avec quelle valeur.
