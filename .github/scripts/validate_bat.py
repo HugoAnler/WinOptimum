@@ -142,6 +142,46 @@ MANDATORY_OPTIMIZATIONS = [
     ("powercfg /h off",                  r"\bpowercfg\b.*?/h\s+off"),
     ("Prefetch desactive",               r"EnablePrefetcher.*?/d\s+0"),
     ("SysMain desactive",                r"Services\\SysMain.*?/d\s+4"),
+    # ── Ajouts v2 — nouvelles optimisations ───────────────────────────────────
+    ("EnableEventTranscript=0 (telemetry DB locale)",
+        r"EnableEventTranscript.*?/d\s+0"),
+    ("DontReportInfectionInformation=1 (MRT cloud)",
+        r"DontReportInfectionInformation.*?/d\s+1"),
+    ("DisableTailoredExperiencesWithDiagnosticData=1 (HKLM)",
+        r"HKLM.*DisableTailoredExperiencesWithDiagnosticData.*?/d\s+1"),
+    ("DisableWindowsSpotlightOnActionCenter=1",
+        r"DisableWindowsSpotlightOnActionCenter.*?/d\s+1"),
+    ("DisableWindowsSpotlightOnSettings=1",
+        r"DisableWindowsSpotlightOnSettings.*?/d\s+1"),
+    ("DisableTailoredExperiencesWithDiagnosticData=1 (HKCU)",
+        r"HKCU.*DisableTailoredExperiencesWithDiagnosticData.*?/d\s+1"),
+    ("DisableBandwidthThrottling=1 (LanmanWorkstation)",
+        r"LanmanWorkstation.*DisableBandwidthThrottling.*?/d\s+1"),
+]
+
+# ── Nouveaux services désactivés (v2) — hardcodés car absents de prerequis ──
+# Ces services ont été ajoutés dans win11-setup.bat v2 pour réduire l'empreinte
+# mémoire sur les systèmes 1 Go RAM. Ils sont vérifiés en plus des mandatory_services
+# lus depuis prerequis_WIN11.md.
+NEW_MANDATORY_SERVICES_V2 = [
+    "WinRM",                    # Windows Remote Management — PS remoting inutile
+    "RasAuto",                  # Remote Access Auto Connection Manager
+    "RasMan",                   # Remote Access Connection Manager
+    "iphlpsvc",                 # IP Helper — tunnels IPv6 inutiles en IPv4 pur
+    "IKEEXT",                   # IKE/AuthIP IPsec Key Management
+    "PolicyAgent",              # IPsec Policy Agent
+    "fhsvc",                    # File History Service
+    "AxInstSV",                 # ActiveX Installer Service
+    "MSiSCSI",                  # iSCSI Initiator
+    "TextInputManagementService",  # Saisie tactile / stylet
+    "GraphicsPerfSvc",          # Diagnostics performance GPU (telemetrie)
+]
+
+# ── Nouveaux domaines télémétrie bloqués (v2) ────────────────────────────────
+NEW_MANDATORY_HOSTS_V2 = [
+    "eu.vortex-win.data.microsoft.com",   # Pipeline Vortex EU
+    "us.vortex-win.data.microsoft.com",   # Pipeline Vortex US
+    "inference.microsoft.com",            # Copilot / AI inference cloud 25H2
 ]
 
 
@@ -562,6 +602,47 @@ def test_no_schtasks_in_for_loop(content):
     return errors
 
 
+def test_new_services_v2_disabled(content):
+    """Vérifie que les nouveaux services v2 sont désactivés (Start=4 ou sc stop)."""
+    errors = []
+    loop_services: set = set()
+    for m in re.finditer(r"for\s+%%S\s+in\s+\(([^)]+)\)", content, re.IGNORECASE):
+        for s in m.group(1).split():
+            loop_services.add(s.strip().lower())
+
+    for svc in NEW_MANDATORY_SERVICES_V2:
+        in_reg = bool(re.search(
+            rf"\\Services\\{re.escape(svc)}(\\|\"|\s).*?/d\s+4",
+            content, re.IGNORECASE
+        ))
+        in_loop = svc.lower() in loop_services
+        if not in_reg and not in_loop:
+            errors.append(f"  Service v2 absent du script : '{svc}' (ni Start=4 ni sc stop loop)")
+    return errors
+
+
+def test_new_hosts_v2_blocked(content):
+    """Vérifie que les nouveaux domaines télémétrie v2 sont bloqués dans hosts."""
+    errors = []
+    hosts_section = ""
+    in_s16 = False
+    for line in content.splitlines():
+        if "SECTION 16" in line:
+            in_s16 = True
+        if in_s16 and "SECTION 17" in line:
+            break
+        if in_s16:
+            hosts_section += line + "\n"
+    if not hosts_section:
+        errors.append("  Section 16 (hosts) introuvable")
+        return errors
+    hosts_lower = hosts_section.lower()
+    for domain in NEW_MANDATORY_HOSTS_V2:
+        if domain.lower() not in hosts_lower:
+            errors.append(f"  Domaine télémétrie v2 absent des hosts : '{domain}'")
+    return errors
+
+
 # ─── Exécution ────────────────────────────────────────────────────────────────
 
 def run_test(name, errors):
@@ -666,6 +747,12 @@ def main():
             test_panther_deletion(active_lines)),
         ("32 schtasks jamais dans une boucle for",
             test_no_schtasks_in_for_loop(content)),
+        # ── Nouveaux tests v2 — optimisations ajoutées ────────────────
+        # Note: test 30 (Optimisations cles) couvre déjà MANDATORY_OPTIMIZATIONS v2
+        ("33 Services v2 desactives (WinRM RasAuto/Man iphlpsvc IKEEXT PolicyAgent etc.)",
+            test_new_services_v2_disabled(content)),
+        ("34 Domaines telemetrie v2 bloques (eu/us.vortex-win inference.microsoft.com)",
+            test_new_hosts_v2_blocked(content)),
     ]
 
     passed = 0
