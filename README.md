@@ -47,12 +47,13 @@ Le script est organisé en **20 sections** qui s'exécutent séquentiellement :
 | 11b | CDP, Presse-papiers local Win+V activé (cloud/cross-device désactivé), ContentDeliveryManager, HKCU privacy, LLMNR, WPAD, SMBv1, Biométrie |
 | 12 | Interface Win10 : barre à gauche (HKLM), widgets supprimés, Teams/Copilot masqués, menu contextuel classique, "Ce PC" par défaut, Galerie/Réseau masqués, son démarrage off, hibernation off, Fast Startup off — centre de notifications conservé |
 | 13 | Priorité CPU : `SystemResponsiveness = 10`, PowerThrottling off, TCP security |
+| 13b | Config système avancée : bypass TPM/RAM, PasswordLess, NumLock, Snap Assist, menu alimentation, RDP conditionnel |
 | 14 | 90+ services désactivés via registre (`Start=4`) |
 | 15 | Arrêt immédiat des services désactivés + `sc failure DiagTrack` |
 | 16 | Fichier `hosts` : 57+ domaines de télémétrie bloqués en `0.0.0.0` (+ bloc Adobe optionnel) |
 | 17a | GPO AppCompat : `DisableUAR`, `DisableInventory`, `DisablePCA`, `AITEnable=0` |
 | 17 | 73+ tâches planifiées désactivées (télémétrie, CEIP, Recall, Copilot, Xbox, IA 25H2, MDM, Work Folders) |
-| 18 | Suppression de 73+ applications bloatware (UWP) via PowerShell |
+| 18 | Suppression de 73 applications bloatware (UWP) via PowerShell |
 | 19 | Nettoyage du dossier `C:\Windows\Prefetch` |
 | 19b | Vérification intégrité système (SFC/DISM) + restart Explorer |
 | 20 | Résumé d'exécution dans le log + fin du script |
@@ -138,15 +139,6 @@ Sur un Windows 11 déjà installé :
 3. Le script s'exécute silencieusement (aucune invite, aucun redémarrage automatique)
 4. Consulter le log à la fin : `C:\Windows\Temp\win11-setup.log`
 
-### Mode 3 — Optimisation hors-ligne d'une image WIM
-
-Pour pré-intégrer les optimisations dans une image Windows avant déploiement :
-
-1. Ouvrir une invite de commandes en tant qu'administrateur
-2. Exécuter `ApplyScriptWim.cmd` et suivre les invites (répertoire de montage, options)
-3. Le script monte l'image, charge les ruches registre, applique les mêmes réglages que `win11-setup.bat` (mémoire, télémétrie, services, tâches, hosts…), puis démonte proprement
-4. Le log est écrit dans `optiwim.log` à côté du script
-
 ---
 
 ## Statistiques
@@ -166,8 +158,7 @@ Pour pré-intégrer les optimisations dans une image Windows avant déploiement 
 
 | Fichier | Description |
 |---|---|
-| `win11-setup.bat` | Script principal d'optimisation post-installation (~1 025 lignes) |
-| `ApplyScriptWim.cmd` | Outil d'optimisation hors-ligne d'une image WIM avant installation (~920 lignes) |
+| `win11-setup.bat` | Script principal d'optimisation post-installation (~997 lignes) |
 | `prerequis_WIN11.md` | Document de spécification : règles de conception, listes d'apps/services/tâches, contraintes techniques |
 | `CLAUDE.md` | Fichier de configuration interne — structure du script, règles absolues, conventions |
 
