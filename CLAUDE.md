@@ -81,3 +81,35 @@ Tests clés : valeurs registre interdites, services protégés, apps protégées
 - Les services conditionnels utilisent `if "%NEED_X%"=="0" reg add ...`
 - Les tâches planifiées avec espaces dans le chemin → appels `schtasks` individuels (pas de boucle `for`)
 - Les clés HKCU s'appliquent à l'utilisateur courant (contexte FirstLogonCommands = premier utilisateur)
+
+## Règles opérationnelles — Git et validation
+
+Ces règles sont issues de problèmes concrets rencontrés lors de modifications sur ce dépôt. Elles sont **obligatoires**.
+
+### 1. Toujours pousser les fichiers volumineux via `git` directement
+
+Les outils MCP (`create_or_update_file`) ne peuvent pas gérer fiablement des fichiers de 90 Ko+ avec des caractères Unicode. Le contenu est tronqué ou corrompu silencieusement.
+
+**Règle** : pour `win11-setup.bat`, `validate_bat.py` et tout fichier > 10 Ko, utiliser exclusivement :
+```bash
+git add <fichier>
+git commit -m "message"
+git push -u origin <branche>
+```
+Ne jamais passer le contenu d'un grand fichier en paramètre inline d'un outil MCP ou d'un agent.
+
+### 2. Ne jamais lancer d'agents en arrière-plan sur les mêmes fichiers
+
+Un agent lancé en arrière-plan (`run_in_background`) peut lire un état stale du dépôt (avant un commit récent) et pousser une version corrompue ou périmée du fichier, écrasant les corrections.
+
+**Règle** : toute opération qui lit, modifie ou pousse `win11-setup.bat` ou `validate_bat.py` doit être effectuée **séquentiellement dans la session principale**. Aucun agent parallèle ou arrière-plan pour ces fichiers.
+
+### 3. Exécuter le validateur avant tout premier push
+
+Une clé registre interdite (ex. `DisableWindowsSpotlightFeatures`) qui passe inaperçue en local fait échouer la CI. Corriger en CI = commits supplémentaires inutiles.
+
+**Règle** : avant le premier `git push` de toute modification de `win11-setup.bat`, toujours exécuter :
+```bash
+python3 .github/scripts/validate_bat.py
+```
+et vérifier que tous les tests passent (0 FAIL). Ne pousser qu'après validation locale réussie.
