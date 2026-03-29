@@ -177,6 +177,8 @@ reg add "HKLM\SOFTWARE\Policies\Microsoft\MRT" /v DontReportInfectionInformation
 :: Tailored Experiences — désactiver les recommandations personnalisées basées sur les données de diagnostic (HKLM)
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailoredExperiencesWithDiagnosticData /t REG_DWORD /d 1 /f >nul 2>&1
 
+:: Desktop Analytics — désactiver le traitement des données analytiques locales
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection" /v EnableDesktopAnalyticsProcessing /t REG_DWORD /d 0 /f >nul 2>&1
 echo [%date% %time%] Section 6 : Telemetrie/AI/Copilot/Recall/SIUF/CEIP/Defender/DataCollection OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -445,6 +447,10 @@ reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindow
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableWindowsSpotlightOnSettings /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKCU\SOFTWARE\Policies\Microsoft\Windows\CloudContent" /v DisableTailoredExperiencesWithDiagnosticData /t REG_DWORD /d 1 /f >nul 2>&1
 
+:: Notifications sync provider — désactiver les pubs OneDrive/tiers dans l'Explorateur
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v ShowSyncProviderNotifications /t REG_DWORD /d 0 /f >nul 2>&1
+:: Métadonnées matériel — empêcher le téléchargement de pilotes/infos depuis Internet
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\Device Metadata" /v PreventDeviceMetadataFromNetwork /t REG_DWORD /d 1 /f >nul 2>&1
 echo [%date% %time%] Section 11b : CDP/Clipboard/NCSI/CDM/AppPrivacy/LockScreen/Handwriting/Maintenance/Geo/PrivacyHKCU/Tips/EventLog/InkWorkspace/Peernet/LLMNR/SMBv1/WPAD OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -593,6 +599,9 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v DisableIPSo
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v EnableICMPRedirect /t REG_DWORD /d 0 /f >nul 2>&1
 :: Réseau — désactiver le throttling LanmanWorkstation (transferts fichiers plus rapides sur réseau local)
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\LanmanWorkstation\Parameters" /v DisableBandwidthThrottling /t REG_DWORD /d 1 /f >nul 2>&1
+:: TCP Keep-Alive — réduire de 2h à 5 minutes (libère connexions inactives plus tôt)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v KeepAliveTime /t REG_DWORD /d 300000 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v KeepAliveInterval /t REG_DWORD /d 1000 /f >nul 2>&1
 echo [%date% %time%] Section 13 : PriorityControl/PowerThrottling/TCP/IPSecurity/LanmanWorkstation OK >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -753,6 +762,12 @@ reg add "HKLM\SYSTEM\CurrentControlSet\Services\MSiSCSI" /v Start /t REG_DWORD /
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\TextInputManagementService" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 :: Diagnostics performance GPU — collecte telemetrie graphique inutile
 reg add "HKLM\SYSTEM\CurrentControlSet\Services\GraphicsPerfSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: NcdAutoSetup — détecte/installe auto les périphériques réseau — inutile sur PC fixe
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\NcdAutoSetup" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: lmhosts — TCP/IP NetBIOS Helper — résolution noms via LMHOSTS, inutile sur réseau IP moderne
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\lmhosts" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
+:: CertPropSvc — Certificate Propagation — sync certs smart card, inutile (SCardSvr désactivé)
+reg add "HKLM\SYSTEM\CurrentControlSet\Services\CertPropSvc" /v Start /t REG_DWORD /d 4 /f >nul 2>&1
 echo [%date% %time%] Section 14 : Services Start=4 ecrits (effectifs apres reboot) >> "%LOG%"
 
 :: ═══════════════════════════════════════════════════════════
@@ -775,6 +790,10 @@ for %%S in (PcaSvc stisvc TapiSrv WFDSConMgrSvc) do (
 if "%NEED_RDP%"=="0" sc stop SessionEnv >nul 2>&1
 :: Arrêt immédiat des nouveaux services réseau désactivés
 for %%S in (WinRM RasAuto RasMan iphlpsvc IKEEXT PolicyAgent fhsvc AxInstSV MSiSCSI TextInputManagementService GraphicsPerfSvc) do (
+  sc query %%S >nul 2>&1 && sc stop %%S >nul 2>&1
+)
+:: Arrêt immédiat des nouveaux services périphériques/réseau désactivés
+for %%S in (NcdAutoSetup lmhosts CertPropSvc) do (
   sc query %%S >nul 2>&1 && sc stop %%S >nul 2>&1
 )
 echo [%date% %time%] Section 15 : sc stop envoye aux services listes >> "%LOG%"
@@ -846,6 +865,9 @@ findstr /C:"Telemetry blocks - win11-setup" "%HOSTSFILE%" >nul 2>&1 || (
   echo 0.0.0.0 eu.vortex-win.data.microsoft.com
   echo 0.0.0.0 us.vortex-win.data.microsoft.com
   echo 0.0.0.0 inference.microsoft.com
+  echo 0.0.0.0 arc.msn.com
+  echo 0.0.0.0 redir.metaservices.microsoft.com
+  echo 0.0.0.0 i1.services.social.microsoft.com
 ) >> "%HOSTSFILE%" 2>nul
 if "%BLOCK_ADOBE%"=="1" (
   (
@@ -989,7 +1011,7 @@ echo [%date% %time%] Section 17 : Taches planifiees desactivees >> "%LOG%"
 :: Note : NEED_RDP et NEED_WEBCAM n'affectent plus la suppression des apps (incluses inconditionnellement)
 :: ═══════════════════════════════════════════════════════════
 
-set "APPLIST=7EE7776C.LinkedInforWindows_3.0.42.0_x64__w1wdnht996qgy Facebook.Facebook MSTeams Microsoft.3DBuilder Microsoft.3DViewer Microsoft.549981C3F5F10 Microsoft.Advertising.Xaml Microsoft.BingNews Microsoft.BingWeather Microsoft.GetHelp Microsoft.Getstarted Microsoft.Messaging Microsoft.Microsoft3DViewer Microsoft.MicrosoftOfficeHub Microsoft.MicrosoftSolitaireCollection Microsoft.MixedReality.Portal Microsoft.NetworkSpeedTest Microsoft.News Microsoft.Office.OneNote Microsoft.Office.Sway Microsoft.OneConnect Microsoft.People Microsoft.Print3D Microsoft.RemoteDesktop Microsoft.SkypeApp Microsoft.Todos Microsoft.Wallet Microsoft.Whiteboard Microsoft.WindowsAlarms Microsoft.WindowsFeedbackHub Microsoft.WindowsMaps Microsoft.WindowsSoundRecorder Microsoft.XboxApp Microsoft.XboxGameOverlay Microsoft.XboxGamingOverlay Microsoft.XboxIdentityProvider Microsoft.XboxSpeechToTextOverlay Microsoft.ZuneMusic Microsoft.ZuneVideo Netflix SpotifyAB.SpotifyMusic king.com.* clipchamp.Clipchamp Microsoft.Copilot Microsoft.BingSearch Microsoft.Windows.DevHome Microsoft.PowerAutomateDesktop Microsoft.WindowsCamera 9WZDNCRFJ4Q7 Microsoft.OutlookForWindows MicrosoftCorporationII.QuickAssist Microsoft.MicrosoftStickyNotes Microsoft.BioEnrollment Microsoft.GamingApp Microsoft.WidgetsPlatformRuntime Microsoft.Windows.NarratorQuickStart Microsoft.Windows.ParentalControls Microsoft.Windows.SecureAssessmentBrowser Microsoft.WindowsCalculator MicrosoftWindows.CrossDevice Microsoft.LinkedIn Microsoft.Teams Microsoft.Xbox.TCUI MicrosoftCorporationII.MicrosoftFamily MicrosoftCorporationII.PhoneLink Microsoft.YourPhone Microsoft.Windows.Ai.Copilot.Provider Microsoft.WindowsRecall Microsoft.RecallApp MicrosoftWindows.Client.WebExperience Microsoft.GamingServices Microsoft.WindowsCommunicationsApps Microsoft.Windows.HolographicFirstRun"
+set "APPLIST=7EE7776C.LinkedInforWindows_3.0.42.0_x64__w1wdnht996qgy Facebook.Facebook MSTeams Microsoft.3DBuilder Microsoft.3DViewer Microsoft.549981C3F5F10 Microsoft.Advertising.Xaml Microsoft.BingNews Microsoft.BingWeather Microsoft.GetHelp Microsoft.Getstarted Microsoft.Messaging Microsoft.Microsoft3DViewer Microsoft.MicrosoftOfficeHub Microsoft.MicrosoftSolitaireCollection Microsoft.MixedReality.Portal Microsoft.NetworkSpeedTest Microsoft.News Microsoft.Office.OneNote Microsoft.Office.Sway Microsoft.OneConnect Microsoft.People Microsoft.Print3D Microsoft.RemoteDesktop Microsoft.SkypeApp Microsoft.Todos Microsoft.Wallet Microsoft.Whiteboard Microsoft.WindowsAlarms Microsoft.WindowsFeedbackHub Microsoft.WindowsMaps Microsoft.WindowsSoundRecorder Microsoft.XboxApp Microsoft.XboxGameOverlay Microsoft.XboxGamingOverlay Microsoft.XboxIdentityProvider Microsoft.XboxSpeechToTextOverlay Microsoft.ZuneMusic Microsoft.ZuneVideo Netflix SpotifyAB.SpotifyMusic king.com.* clipchamp.Clipchamp Microsoft.Copilot Microsoft.BingSearch Microsoft.Windows.DevHome Microsoft.PowerAutomateDesktop Microsoft.WindowsCamera 9WZDNCRFJ4Q7 Microsoft.OutlookForWindows MicrosoftCorporationII.QuickAssist Microsoft.MicrosoftStickyNotes Microsoft.BioEnrollment Microsoft.GamingApp Microsoft.WidgetsPlatformRuntime Microsoft.Windows.NarratorQuickStart Microsoft.Windows.ParentalControls Microsoft.Windows.SecureAssessmentBrowser Microsoft.WindowsCalculator MicrosoftWindows.CrossDevice Microsoft.LinkedIn Microsoft.Teams Microsoft.Xbox.TCUI MicrosoftCorporationII.MicrosoftFamily MicrosoftCorporationII.PhoneLink Microsoft.YourPhone Microsoft.Windows.Ai.Copilot.Provider Microsoft.WindowsRecall Microsoft.RecallApp MicrosoftWindows.Client.WebExperience Microsoft.GamingServices Microsoft.WindowsCommunicationsApps Microsoft.Windows.HolographicFirstRun Microsoft.MicrosoftJournal"
 for %%A in (%APPLIST%) do (
     powershell -NonInteractive -NoProfile -Command "Get-AppxPackage -AllUsers -Name %%A | Remove-AppxPackage -ErrorAction SilentlyContinue" >nul 2>&1
     powershell -NonInteractive -NoProfile -Command "Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq '%%A' } | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue" >nul 2>&1
@@ -1028,7 +1050,7 @@ echo [%date% %time%] === RESUME === >> "%LOG%"
 echo [%date% %time%] Services : 100+ desactives (Start=4, effectifs apres reboot) >> "%LOG%"
 echo [%date% %time%] Taches planifiees : 73+ desactivees >> "%LOG%"
 echo [%date% %time%] Apps UWP : 73+ supprimees >> "%LOG%"
-echo [%date% %time%] Hosts : 60+ domaines telemetrie bloques >> "%LOG%"
+echo [%date% %time%] Hosts : 63+ domaines telemetrie bloques >> "%LOG%"
 echo [%date% %time%] Registre : 150+ cles vie privee/telemetrie/perf appliquees >> "%LOG%"
 echo [%date% %time%] win11-setup.bat termine avec succes. Reboot recommande. >> "%LOG%"
 echo.

@@ -142,7 +142,7 @@ MANDATORY_OPTIMIZATIONS = [
     ("powercfg /h off",                  r"\bpowercfg\b.*?/h\s+off"),
     ("Prefetch desactive",               r"EnablePrefetcher.*?/d\s+0"),
     ("SysMain desactive",                r"Services\\SysMain.*?/d\s+4"),
-    # ── Ajouts v2 — nouvelles optimisations ───────────────────────────────────
+    # ── Ajouts v2 ─────────────────────────────────────────────────────────────
     ("EnableEventTranscript=0 (telemetry DB locale)",
         r"EnableEventTranscript.*?/d\s+0"),
     ("DontReportInfectionInformation=1 (MRT cloud)",
@@ -157,31 +157,17 @@ MANDATORY_OPTIMIZATIONS = [
         r"HKCU.*DisableTailoredExperiencesWithDiagnosticData.*?/d\s+1"),
     ("DisableBandwidthThrottling=1 (LanmanWorkstation)",
         r"LanmanWorkstation.*DisableBandwidthThrottling.*?/d\s+1"),
-]
-
-# ── Nouveaux services désactivés (v2) — hardcodés car absents de prerequis ──
-# Ces services ont été ajoutés dans win11-setup.bat v2 pour réduire l'empreinte
-# mémoire sur les systèmes 1 Go RAM. Ils sont vérifiés en plus des mandatory_services
-# lus depuis prerequis_WIN11.md.
-NEW_MANDATORY_SERVICES_V2 = [
-    "WinRM",                    # Windows Remote Management — PS remoting inutile
-    "RasAuto",                  # Remote Access Auto Connection Manager
-    "RasMan",                   # Remote Access Connection Manager
-    "iphlpsvc",                 # IP Helper — tunnels IPv6 inutiles en IPv4 pur
-    "IKEEXT",                   # IKE/AuthIP IPsec Key Management
-    "PolicyAgent",              # IPsec Policy Agent
-    "fhsvc",                    # File History Service
-    "AxInstSV",                 # ActiveX Installer Service
-    "MSiSCSI",                  # iSCSI Initiator
-    "TextInputManagementService",  # Saisie tactile / stylet
-    "GraphicsPerfSvc",          # Diagnostics performance GPU (telemetrie)
-]
-
-# ── Nouveaux domaines télémétrie bloqués (v2) ────────────────────────────────
-NEW_MANDATORY_HOSTS_V2 = [
-    "eu.vortex-win.data.microsoft.com",   # Pipeline Vortex EU
-    "us.vortex-win.data.microsoft.com",   # Pipeline Vortex US
-    "inference.microsoft.com",            # Copilot / AI inference cloud 25H2
+    # ── Ajouts v3 ─────────────────────────────────────────────────────────────
+    ("EnableDesktopAnalyticsProcessing=0 (traitement telemetrie local)",
+        r"EnableDesktopAnalyticsProcessing.*?/d\s+0"),
+    ("ShowSyncProviderNotifications=0 (pubs OneDrive dans Explorateur)",
+        r"ShowSyncProviderNotifications.*?/d\s+0"),
+    ("PreventDeviceMetadataFromNetwork=1 (telechargement metadonnees)",
+        r"PreventDeviceMetadataFromNetwork.*?/d\s+1"),
+    ("KeepAliveTime=300000 (TCP keep-alive 5 min)",
+        r"KeepAliveTime.*?/d\s+300000"),
+    ("KeepAliveInterval=1000 (retransmission TCP 1s)",
+        r"KeepAliveInterval.*?/d\s+1000"),
 ]
 
 
@@ -602,27 +588,80 @@ def test_no_schtasks_in_for_loop(content):
     return errors
 
 
-def test_new_services_v2_disabled(content):
-    """Vérifie que les nouveaux services v2 sont désactivés (Start=4 ou sc stop)."""
+# ─── Exécution ────────────────────────────────────────────────────────────────
+
+def run_test(name, errors):
+    if errors:
+        print(f"[{FAIL_MARK}] {name}")
+        for e in errors:
+            print(e)
+        return False
+    print(f"[{PASS_MARK}] {name}")
+    return True
+
+
+
+# ── Nouvelles listes v2 (services/hosts) ─────────────────────────────────────
+# Ces éléments ont été ajoutés dans win11-setup.bat v2 pour réduire l'empreinte
+# mémoire sur les systèmes 1 Go RAM.
+NEW_MANDATORY_SERVICES_V2 = [
+    "WinRM",                    # Windows Remote Management — PS remoting inutile
+    "RasAuto",                  # Remote Access Auto Connection Manager
+    "RasMan",                   # Remote Access Connection Manager
+    "iphlpsvc",                 # IP Helper — tunnels IPv6 inutiles en IPv4 pur
+    "IKEEXT",                   # IKE/AuthIP IPsec Key Management
+    "PolicyAgent",              # IPsec Policy Agent
+    "fhsvc",                    # File History Service
+    "AxInstSV",                 # ActiveX Installer Service
+    "MSiSCSI",                  # iSCSI Initiator
+    "TextInputManagementService",  # Saisie tactile / stylet
+    "GraphicsPerfSvc",          # Diagnostics performance GPU (telemetrie)
+]
+
+NEW_MANDATORY_HOSTS_V2 = [
+    "eu.vortex-win.data.microsoft.com",   # Pipeline Vortex EU
+    "us.vortex-win.data.microsoft.com",   # Pipeline Vortex US
+    "inference.microsoft.com",            # Copilot / AI inference cloud 25H2
+]
+
+# ── Nouvelles listes v3 (services/hosts/apps) ────────────────────────────────
+NEW_MANDATORY_SERVICES_V3 = [
+    "NcdAutoSetup",   # Network Connected Devices Auto-Setup — scan LAN inutile sur PC fixe
+    "lmhosts",        # TCP/IP NetBIOS Helper — résolution LMHOSTS inutile sur réseau IP moderne
+    "CertPropSvc",    # Certificate Propagation — sync certs smart card (SCardSvr déjà désactivé)
+]
+
+NEW_MANDATORY_HOSTS_V3 = [
+    "arc.msn.com",                      # Application Reliability Center — télémétrie
+    "redir.metaservices.microsoft.com", # Redirecteur metaservices Microsoft
+    "i1.services.social.microsoft.com", # Analytics social Microsoft
+]
+
+NEW_MANDATORY_APPS_V3 = [
+    "Microsoft.MicrosoftJournal",  # Application Journal (stylet/encre) — 25H2
+]
+
+
+def _check_services_disabled(content, services):
+    """Vérifie que les services sont désactivés (Start=4 ou sc stop)."""
     errors = []
-    loop_services: set = set()
+    loop_services = set()
     for m in re.finditer(r"for\s+%%S\s+in\s+\(([^)]+)\)", content, re.IGNORECASE):
         for s in m.group(1).split():
             loop_services.add(s.strip().lower())
-
-    for svc in NEW_MANDATORY_SERVICES_V2:
+    for svc in services:
         in_reg = bool(re.search(
-            rf"\\Services\\{re.escape(svc)}(\\|\"|\s).*?/d\s+4",
+            r"\\Services\\" + re.escape(svc) + r'(\\|"|\s)' + r".*?/d\s+4",
             content, re.IGNORECASE
         ))
         in_loop = svc.lower() in loop_services
         if not in_reg and not in_loop:
-            errors.append(f"  Service v2 absent du script : '{svc}' (ni Start=4 ni sc stop loop)")
+            errors.append(f"  Service absent : '{svc}' (ni Start=4 ni sc stop)")
     return errors
 
 
-def test_new_hosts_v2_blocked(content):
-    """Vérifie que les nouveaux domaines télémétrie v2 sont bloqués dans hosts."""
+def _check_hosts_blocked(content, domains):
+    """Vérifie que les domaines sont bloqués dans la section hosts (section 16)."""
     errors = []
     hosts_section = ""
     in_s16 = False
@@ -634,25 +673,71 @@ def test_new_hosts_v2_blocked(content):
         if in_s16:
             hosts_section += line + "\n"
     if not hosts_section:
-        errors.append("  Section 16 (hosts) introuvable")
-        return errors
+        return ["  Section 16 (hosts) introuvable"]
     hosts_lower = hosts_section.lower()
-    for domain in NEW_MANDATORY_HOSTS_V2:
+    for domain in domains:
         if domain.lower() not in hosts_lower:
-            errors.append(f"  Domaine télémétrie v2 absent des hosts : '{domain}'")
+            errors.append(f"  Domaine absent des hosts : \'{domain}\'")
     return errors
 
 
-# ─── Exécution ────────────────────────────────────────────────────────────────
+def test_new_services_v2_disabled(content):
+    return _check_services_disabled(content, NEW_MANDATORY_SERVICES_V2)
 
-def run_test(name, errors):
-    if errors:
-        print(f"[{FAIL_MARK}] {name}")
-        for e in errors:
-            print(e)
-        return False
-    print(f"[{PASS_MARK}] {name}")
-    return True
+
+def test_new_hosts_v2_blocked(content):
+    return _check_hosts_blocked(content, NEW_MANDATORY_HOSTS_V2)
+
+
+def test_new_services_v3_disabled(content):
+    return _check_services_disabled(content, NEW_MANDATORY_SERVICES_V3)
+
+
+def test_new_hosts_v3_blocked(content):
+    return _check_hosts_blocked(content, NEW_MANDATORY_HOSTS_V3)
+
+
+def test_new_apps_v3_in_applist(content):
+    """Vérifie que les nouvelles apps v3 sont dans APPLIST."""
+    errors = []
+    m = re.search(r'set\s+"APPLIST=([^"]+)"', content, re.IGNORECASE)
+    if not m:
+        return ["  Variable APPLIST introuvable"]
+    applist = m.group(1).lower()
+    for app in NEW_MANDATORY_APPS_V3:
+        if app.lower() not in applist:
+            errors.append(f"  App v3 absente de APPLIST : \'{app}\'")
+    return errors
+
+
+def write_github_summary(tests_results, passed, failed):
+    """Écrit un rapport markdown dans $GITHUB_STEP_SUMMARY si disponible."""
+    import os
+    summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not summary_file:
+        return
+    total = passed + failed
+    with open(summary_file, "a", encoding="utf-8") as f:
+        if failed == 0:
+            f.write(f"# ✅ Validation réussie — {passed}/{total} tests passés\n\n")
+            f.write("> Super ! Le script Windows est conforme à toutes les règles.\n\n")
+        else:
+            f.write(f"# ❌ {failed} erreur(s) — {passed}/{total} tests passés\n\n")
+            f.write("> Des problèmes ont été trouvés dans le script.\n\n")
+        f.write("## 📋 Résultats\n\n")
+        f.write("| # | Résultat | Test |\n")
+        f.write("|---|----------|------|\n")
+        for i, (name, errors) in enumerate(tests_results, 1):
+            icon = "✅" if not errors else "❌"
+            f.write(f"| {i} | {icon} | {name} |\n")
+        if failed > 0:
+            f.write("\n## 🔍 Détail des erreurs\n\n")
+            for name, errors in tests_results:
+                if errors:
+                    f.write(f"### ❌ {name}\n\n")
+                    f.write("```\n")
+                    f.write("\n".join(errors))
+                    f.write("\n```\n\n")
 
 
 def main():
@@ -747,21 +832,32 @@ def main():
             test_panther_deletion(active_lines)),
         ("32 schtasks jamais dans une boucle for",
             test_no_schtasks_in_for_loop(content)),
-        # ── Nouveaux tests v2 — optimisations ajoutées ────────────────
-        # Note: test 30 (Optimisations cles) couvre déjà MANDATORY_OPTIMIZATIONS v2
+        # ── Tests v2 — services et hosts ajoutés ──────────────────────────────
         ("33 Services v2 desactives (WinRM RasAuto/Man iphlpsvc IKEEXT PolicyAgent etc.)",
             test_new_services_v2_disabled(content)),
         ("34 Domaines telemetrie v2 bloques (eu/us.vortex-win inference.microsoft.com)",
             test_new_hosts_v2_blocked(content)),
+        # ── Tests v3 — services, hosts et apps ajoutés ────────────────────────
+        ("35 Services v3 desactives (NcdAutoSetup lmhosts CertPropSvc)",
+            test_new_services_v3_disabled(content)),
+        ("36 Domaines telemetrie v3 bloques (arc.msn.com redir.metaservices i1.services.social)",
+            test_new_hosts_v3_blocked(content)),
+        ("37 Apps v3 presentes dans APPLIST (Microsoft.MicrosoftJournal)",
+            test_new_apps_v3_in_applist(content)),
     ]
 
     passed = 0
     failed = 0
+    results = []
     for name, errors in tests:
-        if run_test(name, errors):
+        ok = run_test(name, errors)
+        results.append((name, errors))
+        if ok:
             passed += 1
         else:
             failed += 1
+
+    write_github_summary(results, passed, failed)
 
     print("=" * 65)
     if failed == 0:
