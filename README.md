@@ -38,22 +38,22 @@ Le script est organisé en **20 sections** qui s'exécutent séquentiellement :
 | 3 | Suppression des fichiers Panther (`C:\Windows\Panther`) — sécurité : mot de passe admin en clair (25H2) |
 | 4 | Pagefile fixe à 6 Go sur C: (uniquement si ≥ 10 Go d'espace libre) |
 | 5 | Optimisation mémoire : compression activée, Prefetch désactivé, SysMain arrêté, opt-out télémétrie PowerShell |
-| 6 | Zéro télémétrie : 20+ clés registre — Copilot, Recall, DiagTrack, IA 25H2, Spotlight, Cloud Search, collecte Microsoft |
+| 6 | Zéro télémétrie : 25+ clés registre — Copilot, Recall, DiagTrack, IA 25H2, Spotlight, Cloud Search, EventTranscript, MRT, TailoredExperiences, DesktopAnalytics |
 | 7 | AutoLoggers désactivés : DiagTrack, DiagLog, SQMLogger, WiFiSession, NtfsLog, ReadyBoot, AppModel, LwtNetLog, CloudExperienceHostOobe |
 | 8 | Windows Search : désactivation recherche web, Bing, Search Highlights animés (WSearch reste actif) |
 | 9 | GameDVR désactivé, Delivery Optimization désactivé, Edge démarrage anticipé/arrière-plan off (HKCU) |
 | 10 | Politiques Windows Update : redémarrage rapide, réseau mesuré autorisé, notifications conservées |
 | 11 | Vie privée & sécurité : Cortana, ID publicitaire, historique d'activité, géolocalisation, RemoteAssistance, saisie, AutoPlay, contenu cloud, cartes hors ligne, modèle vocal |
-| 11b | CDP, Presse-papiers local Win+V activé (cloud/cross-device désactivé), ContentDeliveryManager, HKCU privacy, LLMNR, WPAD, SMBv1, Biométrie |
+| 11b | CDP, Presse-papiers local Win+V activé (cloud/cross-device désactivé), ContentDeliveryManager, HKCU privacy, Spotlight suggestions (ActionCenter/Settings), notifications sync provider (OneDrive/tiers), métadonnées matériel réseau, LLMNR, WPAD, SMBv1, Biométrie |
 | 12 | Interface Win10 : barre à gauche (HKLM), widgets supprimés, Teams/Copilot masqués, menu contextuel classique, "Ce PC" par défaut, Galerie/Réseau masqués, son démarrage off, hibernation off, Fast Startup off — centre de notifications conservé |
-| 13 | Priorité CPU : `SystemResponsiveness = 10`, PowerThrottling off, TCP security |
+| 13 | Priorité CPU : `SystemResponsiveness = 10`, PowerThrottling off, TCP security, `DisableBandwidthThrottling=1`, TCP Keep-Alive 5 min |
 | 13b | Config système avancée : bypass TPM/RAM, PasswordLess, NumLock, Snap Assist, menu alimentation, RDP conditionnel |
-| 14 | 100+ services désactivés via registre (`Start=4`) dont WinRM, RasAuto, RasMan, iphlpsvc, IKEEXT, PolicyAgent, fhsvc, AxInstSV, MSiSCSI, TextInputManagementService, GraphicsPerfSvc |
-| 15 | Arrêt immédiat des services désactivés (incluant les 11 nouveaux) + `sc failure DiagTrack` |
-| 16 | Fichier `hosts` : 60+ domaines de télémétrie bloqués en `0.0.0.0` dont `eu/us.vortex-win.data.microsoft.com`, `inference.microsoft.com` (+ bloc Adobe optionnel) |
+| 14 | 95+ services désactivés via registre (`Start=4`) dont WinRM, RasAuto, RasMan, iphlpsvc, IKEEXT, PolicyAgent, fhsvc, AxInstSV, MSiSCSI, TextInputManagementService, GraphicsPerfSvc, **NcdAutoSetup**, **lmhosts**, **CertPropSvc** |
+| 15 | Arrêt immédiat des services désactivés (incluant les 14 nouveaux v2+v3) + `sc failure DiagTrack` |
+| 16 | Fichier `hosts` : 63+ domaines de télémétrie bloqués en `0.0.0.0` dont `eu/us.vortex-win.data.microsoft.com`, `inference.microsoft.com`, `arc.msn.com`, `redir.metaservices.microsoft.com` (+ bloc Adobe optionnel) |
 | 17a | GPO AppCompat : `DisableUAR`, `DisableInventory`, `DisablePCA`, `AITEnable=0` |
 | 17 | 73+ tâches planifiées désactivées (télémétrie, CEIP, Recall, Copilot, Xbox, IA 25H2, MDM, Work Folders) |
-| 18 | Suppression de 73 applications bloatware (UWP) via PowerShell |
+| 18 | Suppression de 74 applications bloatware (UWP) via PowerShell (dont Microsoft.MicrosoftJournal) |
 | 19 | Nettoyage du dossier `C:\Windows\Prefetch` |
 | 19b | Vérification intégrité système (SFC/DISM) + restart Explorer |
 | 20 | Résumé d'exécution dans le log + fin du script |
@@ -145,11 +145,11 @@ Sur un Windows 11 déjà installé :
 
 | Catégorie | Quantité |
 |---|---|
-| Clés registre modifiées | 150+ |
-| Services désactivés | 100+ |
+| Clés registre modifiées | 160+ |
+| Services désactivés | 95+ |
 | Tâches planifiées désactivées | 73+ |
-| Applications (UWP) supprimées | 73+ |
-| Domaines de télémétrie bloqués | 60+ |
+| Applications (UWP) supprimées | 74+ |
+| Domaines de télémétrie bloqués | 63+ |
 | Options de configuration | 5 |
 
 ---
@@ -158,7 +158,7 @@ Sur un Windows 11 déjà installé :
 
 | Fichier | Description |
 |---|---|
-| `win11-setup.bat` | Script principal d'optimisation post-installation (~1037 lignes) |
+| `win11-setup.bat` | Script principal d'optimisation post-installation (~1059 lignes) |
 | `prerequis_WIN11.md` | Document de spécification : règles de conception, listes d'apps/services/tâches, contraintes techniques |
 | `CLAUDE.md` | Fichier de configuration interne — structure du script, règles absolues, conventions |
 

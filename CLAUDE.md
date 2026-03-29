@@ -35,19 +35,19 @@ Il n'existe pas d'`autounattend.xml` dans ce dépôt (fichier séparé, hors dé
 | 3 | Suppression fichiers Panther (mot de passe en clair 25H2) |
 | 4 | Pagefile fixe 6 Go — vérification 10 Go libres avant |
 | 5 | Mémoire : compression, SysMain/Prefetch désactivés |
-| 6 | Télémétrie / Copilot / Recall / IA 25H2 / EventTranscript / MRT / TailoredExperiences |
+| 6 | Télémétrie / Copilot / Recall / IA 25H2 / EventTranscript / MRT / TailoredExperiences / DesktopAnalytics |
 | 7 | AutoLoggers (DiagTrack, DiagLog, SQMLogger, WiFiSession, CloudExperienceHostOobe, NtfsLog, ReadyBoot, AppModel, LwtNetLog) |
 | 8 | Windows Search — désactive web/Bing/Search Highlights (WSearch reste actif) |
 | 9 | GameDVR, Delivery Optimization, Edge démarrage anticipé/arrière-plan (HKCU) |
 | 10 | Politiques Windows Update |
 | 11 | Vie privée, sécurité, WER, ContentDelivery, AppPrivacy |
-| 11b | CDP, Clipboard (Win+V local activé, cloud désactivé), ContentDeliveryManager, HKCU privacy, Spotlight suggestions (ActionCenter/Settings/TailoredExperiences HKCU), Ink Workspace, Peernet, TCP sécurité, LLMNR, WPAD, SMBv1, Biométrie |
+| 11b | CDP, Clipboard (Win+V local activé, cloud désactivé), ContentDeliveryManager, HKCU privacy, Spotlight suggestions (ActionCenter/Settings/TailoredExperiences HKCU), ShowSyncProviderNotifications=0, PreventDeviceMetadataFromNetwork=1, Ink Workspace, Peernet, TCP sécurité, LLMNR, WPAD, SMBv1, Biométrie |
 | 12 | Interface Win10 (taskbar, widgets, menu contextuel, hibernation) |
-| 13 | CPU : `SystemResponsiveness=10`, PowerThrottling off, sécurité TCP/IP (`DisableIPSourceRouting`, `EnableICMPRedirect=0`), `DisableBandwidthThrottling=1` (LanmanWorkstation) |
+| 13 | CPU : `SystemResponsiveness=10`, PowerThrottling off, sécurité TCP/IP (`DisableIPSourceRouting`, `EnableICMPRedirect=0`), `DisableBandwidthThrottling=1` (LanmanWorkstation), TCP Keep-Alive (`KeepAliveTime=300000`, `KeepAliveInterval=1000`) |
 | 13b | Config avancée : bypass TPM/RAM, PasswordLess, NumLock, Snap Assist, menu alimentation, RDP conditionnel |
-| 14 | Services → `Start=4` (100+ services, effectif après reboot) dont WinRM, RasAuto, RasMan, iphlpsvc, IKEEXT, PolicyAgent, fhsvc, AxInstSV, MSiSCSI, TextInputManagementService, GraphicsPerfSvc |
-| 15 | `sc stop` immédiat (incluant les 11 nouveaux services) + `sc failure DiagTrack` |
-| 16 | Fichier `hosts` — blocage 60+ domaines télémétrie dont `eu/us.vortex-win.data.microsoft.com`, `inference.microsoft.com` |
+| 14 | Services → `Start=4` (95+ services, effectif après reboot) dont WinRM, RasAuto, RasMan, iphlpsvc, IKEEXT, PolicyAgent, fhsvc, AxInstSV, MSiSCSI, TextInputManagementService, GraphicsPerfSvc, NcdAutoSetup, lmhosts, CertPropSvc |
+| 15 | `sc stop` immédiat (incluant les 14 nouveaux services v2+v3) + `sc failure DiagTrack` |
+| 16 | Fichier `hosts` — blocage 63+ domaines télémétrie dont `eu/us.vortex-win.data.microsoft.com`, `inference.microsoft.com`, `arc.msn.com`, `redir.metaservices.microsoft.com`, `i1.services.social.microsoft.com` |
 | 17a | GPO AppCompat (`DisableUAR`, `DisableInventory`, `DisablePCA`) |
 | 17 | 73+ tâches planifiées désactivées (`schtasks /Change /Disable`) |
 | 18 | Suppression apps UWP (PowerShell `Remove-AppxPackage`) |
@@ -70,9 +70,9 @@ set BLOCK_ADOBE=0   # 1 = activer le bloc Adobe dans hosts
 | Fichier | Rôle |
 |---|---|
 | `.github/workflows/validate.yml` | Déclenche `validate_bat.py` sur push/PR vers `Update` et `main` |
-| `.github/scripts/validate_bat.py` | 32 tests statiques — règles lues depuis `prerequis_WIN11.md` + checks hardcodés |
+| `.github/scripts/validate_bat.py` | 35 tests statiques — règles lues depuis `prerequis_WIN11.md` + checks hardcodés + rapport GitHub Step Summary |
 
-Tests clés : valeurs registre interdites, services protégés, apps protégées, WU intouché, hosts WU jamais bloqués, structure 20 sections, 32 optimisations obligatoires, services v2 désactivés, hosts v2 bloqués.
+Tests clés : valeurs registre interdites, services protégés, apps protégées, WU intouché, hosts WU jamais bloqués, structure 20 sections, optimisations obligatoires, services v2/v3 désactivés, hosts v2/v3 bloqués, apps v3 présentes.
 
 ## Conventions de code
 
